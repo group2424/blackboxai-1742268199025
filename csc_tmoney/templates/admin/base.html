@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - {% block title %}{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-100">
+    <!-- Sidebar -->
+    <div class="fixed inset-y-0 left-0 w-64 bg-gray-900 text-white">
+        <div class="flex flex-col h-full">
+            <!-- Logo -->
+            <div class="px-6 py-4 border-b border-gray-800">
+                <h1 class="text-xl font-bold">CSC TMONEY Admin</h1>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex-1 px-4 py-6 space-y-2">
+                <a href="{{ url_for('admin_bp.dashboard') }}" 
+                   class="block px-4 py-2 rounded-lg hover:bg-gray-800 {% if request.endpoint == 'admin_bp.dashboard' %}bg-gray-800{% endif %}">
+                    <i class="fas fa-chart-line mr-2"></i>Dashboard
+                </a>
+                
+                <a href="{{ url_for('admin_bp.users') }}"
+                   class="block px-4 py-2 rounded-lg hover:bg-gray-800 {% if request.endpoint == 'admin_bp.users' %}bg-gray-800{% endif %}">
+                    <i class="fas fa-users mr-2"></i>Users
+                </a>
+                
+                <a href="{{ url_for('admin_bp.deposits') }}"
+                   class="block px-4 py-2 rounded-lg hover:bg-gray-800 {% if request.endpoint == 'admin_bp.deposits' %}bg-gray-800{% endif %}">
+                    <i class="fas fa-money-bill-wave mr-2"></i>Deposits
+                </a>
+                
+                <a href="{{ url_for('admin_bp.withdrawals') }}"
+                   class="block px-4 py-2 rounded-lg hover:bg-gray-800 {% if request.endpoint == 'admin_bp.withdrawals' %}bg-gray-800{% endif %}">
+                    <i class="fas fa-money-bill-transfer mr-2"></i>Withdrawals
+                </a>
+                
+                <a href="{{ url_for('admin_bp.investments') }}"
+                   class="block px-4 py-2 rounded-lg hover:bg-gray-800 {% if request.endpoint == 'admin_bp.investments' %}bg-gray-800{% endif %}">
+                    <i class="fas fa-chart-pie mr-2"></i>Investments
+                </a>
+                
+                <a href="{{ url_for('admin_bp.announcements') }}"
+                   class="block px-4 py-2 rounded-lg hover:bg-gray-800 {% if request.endpoint == 'admin_bp.announcements' %}bg-gray-800{% endif %}">
+                    <i class="fas fa-bullhorn mr-2"></i>Announcements
+                </a>
+                
+                <a href="{{ url_for('admin_bp.chat') }}"
+                   class="block px-4 py-2 rounded-lg hover:bg-gray-800 {% if request.endpoint == 'admin_bp.chat' %}bg-gray-800{% endif %}">
+                    <i class="fas fa-comments mr-2"></i>Chat Support
+                </a>
+                
+                <a href="{{ url_for('admin_bp.advertisements') }}"
+                   class="block px-4 py-2 rounded-lg hover:bg-gray-800 {% if request.endpoint == 'admin_bp.advertisements' %}bg-gray-800{% endif %}">
+                    <i class="fas fa-ad mr-2"></i>Advertisements
+                </a>
+            </nav>
+            
+            <!-- User Menu -->
+            <div class="px-6 py-4 border-t border-gray-800">
+                <div class="flex items-center">
+                    <div class="flex-1">
+                        <p class="text-sm">Logged in as</p>
+                        <p class="font-semibold">Admin</p>
+                    </div>
+                    <form action="{{ url_for('auth_bp.logout') }}" method="post">
+                        <button type="submit" class="text-gray-400 hover:text-white">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-64">
+        <!-- Top Bar -->
+        <div class="bg-white shadow-sm">
+            <div class="px-8 py-4 flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-gray-800">{% block page_title %}{% endblock %}</h2>
+                
+                <!-- Quick Actions -->
+                <div class="flex items-center space-x-4">
+                    {% block quick_actions %}{% endblock %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="p-4">
+                    {% for category, message in messages %}
+                        <div class="p-4 mb-4 rounded-lg {% if category == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Page Content -->
+        <div class="p-8">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Close flash messages
+        document.querySelectorAll('.flash-message').forEach(message => {
+            setTimeout(() => {
+                message.style.opacity = '0';
+                setTimeout(() => message.remove(), 300);
+            }, 5000);
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
