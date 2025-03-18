@@ -1,0 +1,335 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Announcements Management{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Announcements Management</h1>
+        
+        <!-- Create Button -->
+        <button onclick="openCreateModal()" 
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+            <i class="fas fa-plus mr-2"></i>Create Announcement
+        </button>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Total Announcements -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Total Announcements</h3>
+                <div class="text-blue-600">
+                    <i class="fas fa-bullhorn text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold" id="totalCount">0</p>
+            <p class="text-gray-500 mt-2">All Time Total</p>
+        </div>
+
+        <!-- Active Announcements -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Active Announcements</h3>
+                <div class="text-green-600">
+                    <i class="fas fa-check-circle text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold" id="activeCount">0</p>
+            <p class="text-gray-500 mt-2">Currently Active</p>
+        </div>
+
+        <!-- Today's Announcements -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Today's Announcements</h3>
+                <div class="text-yellow-600">
+                    <i class="fas fa-calendar-day text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold" id="todayCount">0</p>
+            <p class="text-gray-500 mt-2">Posted Today</p>
+        </div>
+    </div>
+
+    <!-- Announcements Table -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-50">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Title
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Content
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Created By
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Date
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200" id="announcementsTableBody">
+                    <!-- Announcements will be loaded here -->
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                            Loading announcements...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="bg-gray-50 px-6 py-3 flex items-center justify-between">
+            <div class="flex-1 flex justify-between sm:hidden">
+                <button onclick="previousPage()" class="btn-pagination">Previous</button>
+                <button onclick="nextPage()" class="btn-pagination">Next</button>
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Showing <span id="startRange">0</span> to <span id="endRange">0</span> of 
+                        <span id="totalAnnouncements">0</span> announcements
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" id="pagination">
+                        <!-- Pagination buttons will be added here -->
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create/Edit Announcement Modal -->
+<div id="announcementModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold" id="modalTitle">Create Announcement</h2>
+                <button onclick="closeAnnouncementModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="announcementForm" class="space-y-6">
+                <div>
+                    <label for="title" class="block text-gray-700 mb-2">Title</label>
+                    <input type="text" id="title" name="title" required
+                           class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                           placeholder="Enter announcement title">
+                </div>
+                
+                <div>
+                    <label for="content" class="block text-gray-700 mb-2">Content</label>
+                    <textarea id="content" name="content" required rows="6"
+                            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                            placeholder="Enter announcement content"></textarea>
+                </div>
+                
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeAnnouncementModal()" 
+                            class="px-4 py-2 border rounded-lg hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        Save Announcement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+let currentPage = 1;
+const announcementsPerPage = 10;
+let totalPages = 1;
+let selectedAnnouncementId = null;
+
+// Load announcements
+async function loadAnnouncements(page = 1) {
+    try {
+        const response = await fetch(`/api/admin/announcements?page=${page}&limit=${announcementsPerPage}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            updateAnnouncementsTable(data.announcements);
+            updatePagination(page, Math.ceil(data.total / announcementsPerPage));
+            updateStats(data.stats);
+            
+            // Update range info
+            const start = (page - 1) * announcementsPerPage + 1;
+            const end = Math.min(start + announcementsPerPage - 1, data.total);
+            document.getElementById('startRange').textContent = start;
+            document.getElementById('endRange').textContent = end;
+            document.getElementById('totalAnnouncements').textContent = data.total;
+        }
+    } catch (error) {
+        console.error('Failed to load announcements:', error);
+    }
+}
+
+// Update announcements table
+function updateAnnouncementsTable(announcements) {
+    const tbody = document.getElementById('announcementsTableBody');
+    tbody.innerHTML = announcements.map(announcement => `
+        <tr>
+            <td class="px-6 py-4">
+                <div class="text-sm font-medium text-gray-900">${announcement.title}</div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="text-sm text-gray-500">${announcement.content.substring(0, 100)}...</div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="text-sm text-gray-900">${announcement.created_by_name}</div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="text-sm text-gray-900">
+                    ${new Date(announcement.timestamp).toLocaleString()}
+                </div>
+            </td>
+            <td class="px-6 py-4 text-sm font-medium space-x-2">
+                <button onclick="editAnnouncement('${announcement.id}')"
+                        class="text-yellow-600 hover:text-yellow-900">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button onclick="deleteAnnouncement('${announcement.id}')"
+                        class="text-red-600 hover:text-red-900">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Update statistics
+function updateStats(stats) {
+    document.getElementById('totalCount').textContent = stats.total_count;
+    document.getElementById('activeCount').textContent = stats.active_count;
+    document.getElementById('todayCount').textContent = stats.today_count;
+}
+
+// Open create modal
+function openCreateModal() {
+    selectedAnnouncementId = null;
+    document.getElementById('modalTitle').textContent = 'Create Announcement';
+    document.getElementById('announcementForm').reset();
+    document.getElementById('announcementModal').classList.remove('hidden');
+}
+
+// Close announcement modal
+function closeAnnouncementModal() {
+    document.getElementById('announcementModal').classList.add('hidden');
+    selectedAnnouncementId = null;
+}
+
+// Edit announcement
+async function editAnnouncement(announcementId) {
+    try {
+        const response = await fetch(`/api/admin/announcement/${announcementId}`);
+        const announcement = await response.json();
+        
+        if (response.ok) {
+            selectedAnnouncementId = announcementId;
+            document.getElementById('modalTitle').textContent = 'Edit Announcement';
+            document.getElementById('title').value = announcement.title;
+            document.getElementById('content').value = announcement.content;
+            document.getElementById('announcementModal').classList.remove('hidden');
+        }
+    } catch (error) {
+        console.error('Failed to load announcement details:', error);
+    }
+}
+
+// Delete announcement
+async function deleteAnnouncement(announcementId) {
+    if (!confirm('Are you sure you want to delete this announcement?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/admin/announcement/${announcementId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            alert('Announcement deleted successfully');
+            loadAnnouncements(currentPage);
+        } else {
+            const data = await response.json();
+            alert(data.error || 'Failed to delete announcement');
+        }
+    } catch (error) {
+        console.error('Failed to delete announcement:', error);
+        alert('An error occurred while deleting announcement');
+    }
+}
+
+// Handle form submission
+document.getElementById('announcementForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+        title: document.getElementById('title').value,
+        content: document.getElementById('content').value
+    };
+    
+    try {
+        const url = selectedAnnouncementId 
+            ? `/api/admin/announcement/${selectedAnnouncementId}`
+            : '/api/admin/announcement';
+            
+        const response = await fetch(url, {
+            method: selectedAnnouncementId ? 'PUT' : 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        if (response.ok) {
+            alert(`Announcement ${selectedAnnouncementId ? 'updated' : 'created'} successfully`);
+            closeAnnouncementModal();
+            loadAnnouncements(currentPage);
+        } else {
+            const data = await response.json();
+            alert(data.error || 'Failed to save announcement');
+        }
+    } catch (error) {
+        console.error('Failed to save announcement:', error);
+        alert('An error occurred while saving announcement');
+    }
+});
+
+// Load initial data
+loadAnnouncements();
+</script>
+
+<style>
+.btn-pagination {
+    @apply relative inline-flex items-center px-4 py-2 border text-sm font-medium;
+}
+
+.btn-pagination:not(.disabled) {
+    @apply text-gray-700 bg-white border-gray-300 hover:bg-gray-50;
+}
+
+.btn-pagination.disabled {
+    @apply text-gray-400 bg-gray-100 cursor-not-allowed;
+}
+</style>
+{% endblock %}
+{% endblock %}
