@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Investment Calculator{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8">Investment Calculator</h1>
+
+    <!-- Calculator Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Calculator Form -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-6">Calculate Your Returns</h2>
+            
+            <form id="calculatorForm" class="space-y-6">
+                <!-- Investment Amount -->
+                <div>
+                    <label for="amount" class="block text-gray-600 mb-2">Investment Amount (RWF)</label>
+                    <input type="number" id="amount" name="amount" min="1000" 
+                           class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                           placeholder="Enter amount (minimum 1,000 RWF)" required>
+                </div>
+
+                <!-- Investment Period -->
+                <div>
+                    <label for="days" class="block text-gray-600 mb-2">Investment Period (Days)</label>
+                    <input type="number" id="days" name="days" min="1" value="30"
+                           class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                           required>
+                </div>
+
+                <!-- Calculate Button -->
+                <button type="submit" 
+                        class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition">
+                    Calculate Returns
+                </button>
+            </form>
+        </div>
+
+        <!-- Results Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-6">Potential Returns</h2>
+            
+            <div id="results" class="hidden space-y-6">
+                <!-- Daily Returns -->
+                <div class="bg-blue-50 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Daily Interest Rate</span>
+                        <span class="text-xl font-bold text-blue-600" id="dailyRate">0%</span>
+                    </div>
+                </div>
+
+                <!-- Daily Earnings -->
+                <div class="bg-green-50 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Daily Earnings</span>
+                        <span class="text-xl font-bold text-green-600" id="dailyEarning">0 RWF</span>
+                    </div>
+                </div>
+
+                <!-- Total Returns -->
+                <div class="bg-purple-50 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Total Returns</span>
+                        <span class="text-xl font-bold text-purple-600" id="totalReturns">0 RWF</span>
+                    </div>
+                </div>
+
+                <!-- Investment Summary -->
+                <div class="mt-6 pt-6 border-t">
+                    <h3 class="font-semibold mb-4">Investment Summary</h3>
+                    <div class="space-y-2 text-gray-600">
+                        <div class="flex justify-between">
+                            <span>Initial Investment</span>
+                            <span id="initialInvestment">0 RWF</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Investment Period</span>
+                            <span id="investmentPeriod">0 days</span>
+                        </div>
+                        <div class="flex justify-between font-semibold text-green-600">
+                            <span>Total Profit</span>
+                            <span id="totalProfit">0 RWF</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Start Investment Button -->
+                <a href="{{ url_for('dashboard_bp.dashboard') }}" 
+                   class="block w-full text-center bg-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-700 transition mt-6">
+                    Start Investing Now
+                </a>
+            </div>
+
+            <!-- Initial State -->
+            <div id="initialState" class="text-center py-12 text-gray-500">
+                <i class="fas fa-calculator text-4xl mb-4"></i>
+                <p>Enter your investment details to calculate potential returns</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Investment Tiers -->
+    <div class="mt-12">
+        <h2 class="text-2xl font-bold mb-6">Investment Tiers</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Tier 1 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 border-t-4 border-blue-400">
+                <div class="text-blue-600 text-4xl mb-4">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Starter</h3>
+                <div class="text-gray-600 space-y-2">
+                    <p>1,000 RWF - 10,000 RWF</p>
+                    <p class="text-2xl font-bold text-blue-600">2% Daily</p>
+                    <p class="text-sm">Perfect for new investors</p>
+                </div>
+            </div>
+
+            <!-- Tier 2 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 border-t-4 border-green-400">
+                <div class="text-green-600 text-4xl mb-4">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Growth</h3>
+                <div class="text-gray-600 space-y-2">
+                    <p>10,001 RWF - 50,000 RWF</p>
+                    <p class="text-2xl font-bold text-green-600">3% Daily</p>
+                    <p class="text-sm">For growing investors</p>
+                </div>
+            </div>
+
+            <!-- Tier 3 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 border-t-4 border-purple-400">
+                <div class="text-purple-600 text-4xl mb-4">
+                    <i class="fas fa-gem"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Premium</h3>
+                <div class="text-gray-600 space-y-2">
+                    <p>50,001 RWF - 100,000 RWF</p>
+                    <p class="text-2xl font-bold text-purple-600">5% Daily</p>
+                    <p class="text-sm">For serious investors</p>
+                </div>
+            </div>
+
+            <!-- Tier 4 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 border-t-4 border-yellow-400">
+                <div class="text-yellow-600 text-4xl mb-4">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Elite</h3>
+                <div class="text-gray-600 space-y-2">
+                    <p>100,001 RWF - 500,000 RWF</p>
+                    <p class="text-2xl font-bold text-yellow-600">6% Daily</p>
+                    <p class="text-sm">For professional investors</p>
+                </div>
+            </div>
+
+            <!-- Tier 5 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 border-t-4 border-red-400">
+                <div class="text-red-600 text-4xl mb-4">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">VIP</h3>
+                <div class="text-gray-600 space-y-2">
+                    <p>500,001 RWF - 1,000,000 RWF</p>
+                    <p class="text-2xl font-bold text-red-600">8% Daily</p>
+                    <p class="text-sm">For VIP investors</p>
+                </div>
+            </div>
+
+            <!-- Tier 6 -->
+            <div class="bg-white rounded-lg shadow-lg p-6 border-t-4 border-indigo-400">
+                <div class="text-indigo-600 text-4xl mb-4">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Platinum</h3>
+                <div class="text-gray-600 space-y-2">
+                    <p>Above 1,000,000 RWF</p>
+                    <p class="text-2xl font-bold text-indigo-600">10% Daily</p>
+                    <p class="text-sm">For platinum investors</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.getElementById('calculatorForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const amount = parseFloat(document.getElementById('amount').value);
+    const days = parseInt(document.getElementById('days').value);
+    
+    try {
+        const response = await fetch('/api/investment/calculate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ amount, days })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Show results
+            document.getElementById('initialState').classList.add('hidden');
+            document.getElementById('results').classList.remove('hidden');
+            
+            // Update values
+            document.getElementById('dailyRate').textContent = `${data.daily_rate}%`;
+            document.getElementById('dailyEarning').textContent = `${data.daily_earning.toLocaleString()} RWF`;
+            document.getElementById('totalReturns').textContent = `${data.total_earning.toLocaleString()} RWF`;
+            document.getElementById('initialInvestment').textContent = `${amount.toLocaleString()} RWF`;
+            document.getElementById('investmentPeriod').textContent = `${days} days`;
+            document.getElementById('totalProfit').textContent = `${(data.total_earning - amount).toLocaleString()} RWF`;
+        } else {
+            alert(data.error || 'Failed to calculate returns');
+        }
+    } catch (error) {
+        alert('An error occurred. Please try again.');
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}
