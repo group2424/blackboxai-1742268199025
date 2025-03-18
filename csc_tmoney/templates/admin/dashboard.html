@@ -1,0 +1,224 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Users -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                <i class="fas fa-users text-2xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-gray-500">Total Users</p>
+                <p class="text-2xl font-semibold">{{ stats.total_users }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Deposits -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-green-100 text-green-600">
+                <i class="fas fa-money-bill-wave text-2xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-gray-500">Total Deposits</p>
+                <p class="text-2xl font-semibold">{{ stats.total_deposits | format_currency }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Withdrawals -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-red-100 text-red-600">
+                <i class="fas fa-money-bill-transfer text-2xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-gray-500">Total Withdrawals</p>
+                <p class="text-2xl font-semibold">{{ stats.total_withdrawals | format_currency }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Investments -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                <i class="fas fa-chart-line text-2xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-gray-500">Total Investments</p>
+                <p class="text-2xl font-semibold">{{ stats.total_investments | format_currency }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Actions -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <!-- Pending Deposits -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b">
+            <h3 class="text-lg font-semibold">Pending Deposits</h3>
+        </div>
+        <div class="p-6">
+            {% if stats.pending_deposits %}
+                <div class="space-y-4">
+                    {% for deposit in stats.pending_deposits %}
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-medium">{{ deposit.user_name }}</p>
+                            <p class="text-sm text-gray-500">{{ deposit.amount | format_currency }}</p>
+                        </div>
+                        <button onclick="approveDeposit('{{ deposit.id }}')"
+                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            Approve
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-500">No pending deposits</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pending Withdrawals -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b">
+            <h3 class="text-lg font-semibold">Pending Withdrawals</h3>
+        </div>
+        <div class="p-6">
+            {% if stats.pending_withdrawals %}
+                <div class="space-y-4">
+                    {% for withdrawal in stats.pending_withdrawals %}
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-medium">{{ withdrawal.user_name }}</p>
+                            <p class="text-sm text-gray-500">{{ withdrawal.amount | format_currency }}</p>
+                        </div>
+                        <button onclick="approveWithdrawal('{{ withdrawal.id }}')"
+                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            Approve
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-500">No pending withdrawals</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activities -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Recent Users -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b">
+            <h3 class="text-lg font-semibold">Recent Users</h3>
+        </div>
+        <div class="p-6">
+            <div class="space-y-4">
+                {% for user in recent_users %}
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                        <i class="fas fa-user text-gray-500"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="font-medium">{{ user.full_name }}</p>
+                        <p class="text-sm text-gray-500">{{ user.created_at | format_datetime }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b">
+            <h3 class="text-lg font-semibold">Recent Transactions</h3>
+        </div>
+        <div class="p-6">
+            <div class="space-y-4">
+                {% for transaction in recent_transactions %}
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full {% if transaction.type == 'deposit' %}bg-green-100 text-green-600{% else %}bg-red-100 text-red-600{% endif %} flex items-center justify-center">
+                            <i class="fas {% if transaction.type == 'deposit' %}fa-arrow-down{% else %}fa-arrow-up{% endif %}"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="font-medium">{{ transaction.user_name }}</p>
+                            <p class="text-sm text-gray-500">{{ transaction.created_at | format_datetime }}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-medium {% if transaction.type == 'deposit' %}text-green-600{% else %}text-red-600{% endif %}">
+                            {{ transaction.amount | format_currency }}
+                        </p>
+                        <p class="text-sm text-gray-500">{{ transaction.type | title }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function approveDeposit(depositId) {
+    try {
+        const response = await fetch(`/admin/api/approve-deposit/${depositId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            alert('Deposit approved successfully');
+            location.reload();
+        } else {
+            alert(data.error || 'Failed to approve deposit');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred');
+    }
+}
+
+async function approveWithdrawal(withdrawalId) {
+    try {
+        const response = await fetch(`/admin/api/approve-withdrawal/${withdrawalId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            alert('Withdrawal approved successfully');
+            location.reload();
+        } else {
+            alert(data.error || 'Failed to approve withdrawal');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred');
+    }
+}
+</script>
+{% endblock %}
