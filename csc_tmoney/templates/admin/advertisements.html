@@ -1,0 +1,404 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Advertisements Management{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Advertisements Management</h1>
+        
+        <!-- Create Button -->
+        <button onclick="openCreateModal()" 
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+            <i class="fas fa-plus mr-2"></i>Create Advertisement
+        </button>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Active Ads -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Active Ads</h3>
+                <div class="text-green-600">
+                    <i class="fas fa-ad text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold" id="activeCount">0</p>
+            <p class="text-gray-500 mt-2">Currently Active</p>
+        </div>
+
+        <!-- Total Ads -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Total Ads</h3>
+                <div class="text-blue-600">
+                    <i class="fas fa-chart-bar text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold" id="totalCount">0</p>
+            <p class="text-gray-500 mt-2">All Time Total</p>
+        </div>
+
+        <!-- Today's Ads -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Today's Ads</h3>
+                <div class="text-yellow-600">
+                    <i class="fas fa-calendar-day text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold" id="todayCount">0</p>
+            <p class="text-gray-500 mt-2">Posted Today</p>
+        </div>
+    </div>
+
+    <!-- Advertisements Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="adsGrid">
+        <!-- Advertisements will be loaded here -->
+        <div class="col-span-full text-center text-gray-500 py-8">
+            Loading advertisements...
+        </div>
+    </div>
+</div>
+
+<!-- Create/Edit Advertisement Modal -->
+<div id="adModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold" id="modalTitle">Create Advertisement</h2>
+                <button onclick="closeAdModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="adForm" class="space-y-6">
+                <!-- Ad Type -->
+                <div>
+                    <label class="block text-gray-700 mb-2">Advertisement Type</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <label class="relative">
+                            <input type="radio" name="type" value="text" class="sr-only peer" checked>
+                            <div class="border rounded-lg p-4 cursor-pointer peer-checked:border-blue-600 peer-checked:bg-blue-50">
+                                <div class="flex items-center">
+                                    <i class="fas fa-font text-blue-600 mr-2"></i>
+                                    Text Advertisement
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="relative">
+                            <input type="radio" name="type" value="image" class="sr-only peer">
+                            <div class="border rounded-lg p-4 cursor-pointer peer-checked:border-blue-600 peer-checked:bg-blue-50">
+                                <div class="flex items-center">
+                                    <i class="fas fa-image text-blue-600 mr-2"></i>
+                                    Image Advertisement
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Text Content (for text ads) -->
+                <div id="textContentSection">
+                    <label for="textContent" class="block text-gray-700 mb-2">Advertisement Text</label>
+                    <textarea id="textContent" name="textContent" rows="4"
+                            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                            placeholder="Enter advertisement text"></textarea>
+                </div>
+
+                <!-- Image Upload (for image ads) -->
+                <div id="imageContentSection" class="hidden">
+                    <label class="block text-gray-700 mb-2">Advertisement Image</label>
+                    <div class="border-2 border-dashed rounded-lg p-6 text-center">
+                        <input type="file" id="imageUpload" accept="image/*" class="hidden">
+                        <div id="imagePreview" class="hidden mb-4">
+                            <img src="" alt="Preview" class="max-h-48 mx-auto">
+                        </div>
+                        <button type="button" onclick="document.getElementById('imageUpload').click()"
+                                class="bg-gray-100 text-gray-600 px-4 py-2 rounded hover:bg-gray-200 transition">
+                            <i class="fas fa-upload mr-2"></i>Choose Image
+                        </button>
+                        <p class="text-sm text-gray-500 mt-2">Maximum file size: 2MB</p>
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="active" name="active" class="rounded text-blue-600" checked>
+                        <span class="ml-2">Active</span>
+                    </label>
+                </div>
+
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeAdModal()" 
+                            class="px-4 py-2 border rounded-lg hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        Save Advertisement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+let selectedAdId = null;
+
+// Load advertisements
+async function loadAdvertisements() {
+    try {
+        const response = await fetch('/api/admin/advertisements');
+        const data = await response.json();
+        
+        if (response.ok) {
+            updateAdsGrid(data.advertisements);
+            updateStats(data.stats);
+        }
+    } catch (error) {
+        console.error('Failed to load advertisements:', error);
+    }
+}
+
+// Update advertisements grid
+function updateAdsGrid(ads) {
+    const grid = document.getElementById('adsGrid');
+    grid.innerHTML = ads.map(ad => `
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            ${ad.type === 'image' ? `
+                <div class="aspect-w-16 aspect-h-9">
+                    <img src="${ad.content}" alt="Advertisement" class="object-cover w-full h-full">
+                </div>
+            ` : `
+                <div class="p-6">
+                    <p class="text-gray-600">${ad.content}</p>
+                </div>
+            `}
+            <div class="p-4 border-t bg-gray-50 flex items-center justify-between">
+                <div class="flex items-center">
+                    <span class="px-2 py-1 rounded-full text-xs font-semibold 
+                        ${ad.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                        ${ad.active ? 'Active' : 'Inactive'}
+                    </span>
+                    <span class="text-sm text-gray-500 ml-3">
+                        ${new Date(ad.timestamp).toLocaleDateString()}
+                    </span>
+                </div>
+                <div class="space-x-2">
+                    <button onclick="editAd('${ad.id}')"
+                            class="text-yellow-600 hover:text-yellow-900">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button onclick="toggleAdStatus('${ad.id}', ${!ad.active})"
+                            class="text-blue-600 hover:text-blue-900">
+                        <i class="fas fa-${ad.active ? 'pause' : 'play'}"></i>
+                    </button>
+                    <button onclick="deleteAd('${ad.id}')"
+                            class="text-red-600 hover:text-red-900">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Update statistics
+function updateStats(stats) {
+    document.getElementById('activeCount').textContent = stats.active_count;
+    document.getElementById('totalCount').textContent = stats.total_count;
+    document.getElementById('todayCount').textContent = stats.today_count;
+}
+
+// Toggle ad type sections
+document.querySelectorAll('input[name="type"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+        const isText = radio.value === 'text';
+        document.getElementById('textContentSection').classList.toggle('hidden', !isText);
+        document.getElementById('imageContentSection').classList.toggle('hidden', isText);
+    });
+});
+
+// Handle image upload
+document.getElementById('imageUpload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        if (file.size > 2 * 1024 * 1024) {
+            alert('File size exceeds 2MB limit');
+            this.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('imagePreview');
+            preview.querySelector('img').src = e.target.result;
+            preview.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Open create modal
+function openCreateModal() {
+    selectedAdId = null;
+    document.getElementById('modalTitle').textContent = 'Create Advertisement';
+    document.getElementById('adForm').reset();
+    document.getElementById('imagePreview').classList.add('hidden');
+    document.getElementById('adModal').classList.remove('hidden');
+}
+
+// Close ad modal
+function closeAdModal() {
+    document.getElementById('adModal').classList.add('hidden');
+    selectedAdId = null;
+}
+
+// Edit advertisement
+async function editAd(adId) {
+    try {
+        const response = await fetch(`/api/admin/advertisement/${adId}`);
+        const ad = await response.json();
+        
+        if (response.ok) {
+            selectedAdId = adId;
+            document.getElementById('modalTitle').textContent = 'Edit Advertisement';
+            
+            // Set type
+            document.querySelector(`input[name="type"][value="${ad.type}"]`).checked = true;
+            document.getElementById('textContentSection').classList.toggle('hidden', ad.type !== 'text');
+            document.getElementById('imageContentSection').classList.toggle('hidden', ad.type !== 'image');
+            
+            // Set content
+            if (ad.type === 'text') {
+                document.getElementById('textContent').value = ad.content;
+            } else {
+                const preview = document.getElementById('imagePreview');
+                preview.querySelector('img').src = ad.content;
+                preview.classList.remove('hidden');
+            }
+            
+            // Set status
+            document.getElementById('active').checked = ad.active;
+            
+            document.getElementById('adModal').classList.remove('hidden');
+        }
+    } catch (error) {
+        console.error('Failed to load advertisement details:', error);
+    }
+}
+
+// Toggle ad status
+async function toggleAdStatus(adId, active) {
+    try {
+        const response = await fetch(`/api/admin/advertisement/${adId}/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ active })
+        });
+        
+        if (response.ok) {
+            loadAdvertisements();
+        } else {
+            const data = await response.json();
+            alert(data.error || 'Failed to update advertisement status');
+        }
+    } catch (error) {
+        console.error('Failed to toggle advertisement status:', error);
+        alert('An error occurred while updating advertisement status');
+    }
+}
+
+// Delete advertisement
+async function deleteAd(adId) {
+    if (!confirm('Are you sure you want to delete this advertisement?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/admin/advertisement/${adId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            loadAdvertisements();
+        } else {
+            const data = await response.json();
+            alert(data.error || 'Failed to delete advertisement');
+        }
+    } catch (error) {
+        console.error('Failed to delete advertisement:', error);
+        alert('An error occurred while deleting advertisement');
+    }
+}
+
+// Handle form submission
+document.getElementById('adForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const type = document.querySelector('input[name="type"]:checked').value;
+    let content;
+    
+    if (type === 'text') {
+        content = document.getElementById('textContent').value;
+    } else {
+        const imageInput = document.getElementById('imageUpload');
+        if (imageInput.files.length > 0) {
+            const reader = new FileReader();
+            content = await new Promise(resolve => {
+                reader.onload = e => resolve(e.target.result);
+                reader.readAsDataURL(imageInput.files[0]);
+            });
+        } else if (!selectedAdId) {
+            alert('Please select an image');
+            return;
+        }
+    }
+    
+    const formData = {
+        type,
+        content,
+        active: document.getElementById('active').checked
+    };
+    
+    try {
+        const url = selectedAdId 
+            ? `/api/admin/advertisement/${selectedAdId}`
+            : '/api/admin/advertisement';
+            
+        const response = await fetch(url, {
+            method: selectedAdId ? 'PUT' : 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        if (response.ok) {
+            alert(`Advertisement ${selectedAdId ? 'updated' : 'created'} successfully`);
+            closeAdModal();
+            loadAdvertisements();
+        } else {
+            const data = await response.json();
+            alert(data.error || 'Failed to save advertisement');
+        }
+    } catch (error) {
+        console.error('Failed to save advertisement:', error);
+        alert('An error occurred while saving advertisement');
+    }
+});
+
+// Load initial data
+loadAdvertisements();
+</script>
+{% endblock %}
+{% endblock %}
