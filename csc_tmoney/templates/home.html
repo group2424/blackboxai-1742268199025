@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="relative bg-gradient-to-r from-blue-600 to-blue-800 text-white py-20">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <!-- Hero Content -->
+            <div class="space-y-6">
+                <h1 class="text-4xl md:text-5xl font-bold leading-tight">
+                    Invest Smart, Earn Daily with CSC TMONEY
+                </h1>
+                <p class="text-xl text-blue-100">
+                    Join thousands of investors earning daily returns through our secure investment platform.
+                </p>
+                <div class="flex space-x-4">
+                    <a href="{{ url_for('auth_bp.register') }}" 
+                       class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
+                        Get Started
+                    </a>
+                    <a href="{{ url_for('investment_bp.calculator') }}" 
+                       class="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition">
+                        Calculate Returns
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white bg-opacity-10 p-6 rounded-lg backdrop-blur-lg">
+                    <div class="text-3xl font-bold stats-value" data-target="5000">0</div>
+                    <div class="text-blue-200">Active Investors</div>
+                </div>
+                <div class="bg-white bg-opacity-10 p-6 rounded-lg backdrop-blur-lg">
+                    <div class="text-3xl font-bold stats-value" data-target="1000000">0</div>
+                    <div class="text-blue-200">Total Investments (RWF)</div>
+                </div>
+                <div class="bg-white bg-opacity-10 p-6 rounded-lg backdrop-blur-lg">
+                    <div class="text-3xl font-bold stats-value" data-target="98">0</div>
+                    <div class="text-blue-200">Success Rate (%)</div>
+                </div>
+                <div class="bg-white bg-opacity-10 p-6 rounded-lg backdrop-blur-lg">
+                    <div class="text-3xl font-bold stats-value" data-target="500000">0</div>
+                    <div class="text-blue-200">Daily Payouts (RWF)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Investment Tiers -->
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Investment Tiers</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">
+                Choose the investment tier that suits your goals. Higher tiers offer better daily returns.
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Starter Tier -->
+            <div class="border rounded-lg p-8 hover:shadow-lg transition">
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">Starter</h3>
+                <div class="text-4xl font-bold text-blue-600 mb-4">2%<span class="text-lg text-gray-600">/day</span></div>
+                <ul class="space-y-3 mb-8">
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        50,000 - 499,999 RWF
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        30 Days Duration
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        Daily Payouts
+                    </li>
+                </ul>
+                <a href="{{ url_for('investment_bp.calculator') }}" 
+                   class="block w-full text-center bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                    Calculate Returns
+                </a>
+            </div>
+            
+            <!-- Premium Tier -->
+            <div class="border rounded-lg p-8 hover:shadow-lg transition bg-blue-50">
+                <div class="absolute top-0 right-0 bg-blue-600 text-white px-4 py-1 rounded-bl-lg">Popular</div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">Premium</h3>
+                <div class="text-4xl font-bold text-blue-600 mb-4">5%<span class="text-lg text-gray-600">/day</span></div>
+                <ul class="space-y-3 mb-8">
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        500,000 - 4,999,999 RWF
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        30 Days Duration
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        Daily Payouts
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        Priority Support
+                    </li>
+                </ul>
+                <a href="{{ url_for('investment_bp.calculator') }}" 
+                   class="block w-full text-center bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                    Calculate Returns
+                </a>
+            </div>
+            
+            <!-- VIP Tier -->
+            <div class="border rounded-lg p-8 hover:shadow-lg transition">
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">VIP</h3>
+                <div class="text-4xl font-bold text-blue-600 mb-4">8%<span class="text-lg text-gray-600">/day</span></div>
+                <ul class="space-y-3 mb-8">
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        5,000,000+ RWF
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        30 Days Duration
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        Daily Payouts
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        VIP Support
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        Investment Advisor
+                    </li>
+                </ul>
+                <a href="{{ url_for('investment_bp.calculator') }}" 
+                   class="block w-full text-center bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                    Calculate Returns
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">How It Works</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">
+                Start earning daily returns in just a few simple steps.
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <!-- Step 1 -->
+            <div class="text-center">
+                <div class="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">1</div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Create Account</h3>
+                <p class="text-gray-600">Register and verify your account in minutes.</p>
+            </div>
+            
+            <!-- Step 2 -->
+            <div class="text-center">
+                <div class="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">2</div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Choose Plan</h3>
+                <p class="text-gray-600">Select an investment tier that matches your goals.</p>
+            </div>
+            
+            <!-- Step 3 -->
+            <div class="text-center">
+                <div class="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">3</div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Make Deposit</h3>
+                <p class="text-gray-600">Fund your investment using mobile money.</p>
+            </div>
+            
+            <!-- Step 4 -->
+            <div class="text-center">
+                <div class="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">4</div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Earn Daily</h3>
+                <p class="text-gray-600">Start receiving daily returns on your investment.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">What Our Investors Say</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">
+                Join thousands of satisfied investors who trust CSC TMONEY.
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Testimonial 1 -->
+            <div class="bg-gray-50 p-8 rounded-lg">
+                <div class="text-yellow-400 mb-4">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="text-gray-600 mb-4">
+                    "I've been investing with CSC TMONEY for 3 months now. The daily returns are consistent and the platform is very user-friendly."
+                </p>
+                <div class="font-semibold text-gray-900">John D.</div>
+                <div class="text-gray-600">Premium Investor</div>
+            </div>
+            
+            <!-- Testimonial 2 -->
+            <div class="bg-gray-50 p-8 rounded-lg">
+                <div class="text-yellow-400 mb-4">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="text-gray-600 mb-4">
+                    "The referral program is amazing! I've earned extra income by inviting friends to join the platform."
+                </p>
+                <div class="font-semibold text-gray-900">Sarah M.</div>
+                <div class="text-gray-600">VIP Investor</div>
+            </div>
+            
+            <!-- Testimonial 3 -->
+            <div class="bg-gray-50 p-8 rounded-lg">
+                <div class="text-yellow-400 mb-4">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="text-gray-600 mb-4">
+                    "Started with the Starter tier and quickly upgraded to Premium. The returns have been life-changing!"
+                </p>
+                <div class="font-semibold text-gray-900">Michael R.</div>
+                <div class="text-gray-600">Premium Investor</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-20 bg-blue-600 text-white">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+        <h2 class="text-3xl font-bold mb-4">Ready to Start Earning?</h2>
+        <p class="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            Join CSC TMONEY today and start earning daily returns on your investments.
+        </p>
+        <div class="flex justify-center space-x-4">
+            <a href="{{ url_for('auth_bp.register') }}" 
+               class="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition">
+                Create Account
+            </a>
+            <a href="{{ url_for('investment_bp.calculator') }}" 
+               class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition">
+                Calculate Returns
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Animate statistics
+function animateStats() {
+    const stats = document.querySelectorAll('.stats-value');
+    stats.forEach(stat => {
+        const target = parseInt(stat.getAttribute('data-target'));
+        const duration = 2000; // 2 seconds
+        const increment = target / (duration / 16); // 60fps
+        let current = 0;
+
+        const timer = setInterval(() => {
+            current += increment;
+            stat.textContent = Math.floor(current).toLocaleString();
+
+            if (current >= target) {
+                stat.textContent = target.toLocaleString();
+                clearInterval(timer);
+            }
+        }, 16);
+    });
+}
+
+// Initialize animations when elements come into view
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            animateStats();
+            observer.unobserve(entry.target);
+        }
+    });
+});
+
+document.querySelectorAll('.stats-value').forEach(stat => {
+    observer.observe(stat);
+});
+</script>
+{% endblock %}
