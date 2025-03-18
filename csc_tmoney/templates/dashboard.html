@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Balance Card -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Balance</h3>
+                <div class="text-blue-600">
+                    <i class="fas fa-wallet text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold">{{ data.balance|format_currency }} RWF</p>
+            <p class="text-gray-500 mt-2">Available Balance</p>
+        </div>
+
+        <!-- Active Investments Card -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Active Investments</h3>
+                <div class="text-green-600">
+                    <i class="fas fa-chart-line text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold">{{ data.investments|length }}</p>
+            <p class="text-gray-500 mt-2">Current Investments</p>
+        </div>
+
+        <!-- Total Earnings Card -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Total Earnings</h3>
+                <div class="text-yellow-600">
+                    <i class="fas fa-coins text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold">
+                {{ data.investments|sum(attribute='total_earned')|format_currency }} RWF
+            </p>
+            <p class="text-gray-500 mt-2">Lifetime Earnings</p>
+        </div>
+
+        <!-- Referral Earnings Card -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Referral Earnings</h3>
+                <div class="text-purple-600">
+                    <i class="fas fa-users text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold">
+                {{ data.referral_stats.total_earnings|format_currency }} RWF
+            </p>
+            <p class="text-gray-500 mt-2">From {{ data.referral_stats.total_referrals }} Referrals</p>
+        </div>
+    </div>
+
+    <!-- Active Investments -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-2xl font-bold mb-6">Active Investments</h2>
+        {% if data.investments %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Daily Rate</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Days Active</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Earned</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for investment in data.investments %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {{ investment.amount|format_currency }} RWF
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {{ investment.daily_rate }}%
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {{ investment.days_active }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {{ investment.total_earned|format_currency }} RWF
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {{ investment.start_date|format_date }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-chart-line text-4xl mb-4"></i>
+                <p>No active investments yet.</p>
+                <a href="{{ url_for('investment_bp.calculator') }}" class="text-blue-600 hover:text-blue-800 mt-2 inline-block">
+                    Start Investing
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-2xl font-bold mb-6">Recent Transactions</h2>
+        {% if data.transactions %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for transaction in data.transactions %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        {% if transaction.type == 'deposit' %}
+                                            <i class="fas fa-arrow-down text-green-500 mr-2"></i>
+                                        {% elif transaction.type == 'withdrawal' %}
+                                            <i class="fas fa-arrow-up text-red-500 mr-2"></i>
+                                        {% else %}
+                                            <i class="fas fa-exchange-alt text-blue-500 mr-2"></i>
+                                        {% endif %}
+                                        {{ transaction.type|title }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {{ transaction.amount|format_currency }} RWF
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if transaction.status == 'pending' %}
+                                            bg-yellow-100 text-yellow-800
+                                        {% elif transaction.status == 'approved' %}
+                                            bg-green-100 text-green-800
+                                        {% else %}
+                                            bg-red-100 text-red-800
+                                        {% endif %}">
+                                        {{ transaction.status|title }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {{ transaction.timestamp|format_date }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-receipt text-4xl mb-4"></i>
+                <p>No transactions yet.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Referral Program -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-2xl font-bold mb-6">Referral Program</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Referral Link -->
+            <div class="bg-gray-50 rounded-lg p-6">
+                <h3 class="text-lg font-semibold mb-4">Your Referral Link</h3>
+                <div class="flex items-center space-x-2">
+                    <input type="text" value="{{ request.host_url }}register?ref={{ data.referral_stats.referral_code }}" 
+                           class="flex-1 p-2 border rounded" readonly id="referralLink">
+                    <button onclick="copyReferralLink()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Referral Stats -->
+            <div class="bg-gray-50 rounded-lg p-6">
+                <h3 class="text-lg font-semibold mb-4">Your Team</h3>
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p class="text-2xl font-bold text-blue-600">{{ data.referral_stats.level_a_count }}</p>
+                        <p class="text-gray-600">Level A</p>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-blue-600">{{ data.referral_stats.level_b_count }}</p>
+                        <p class="text-gray-600">Level B</p>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-blue-600">{{ data.referral_stats.level_c_count }}</p>
+                        <p class="text-gray-600">Level C</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+function copyReferralLink() {
+    const referralLink = document.getElementById('referralLink');
+    referralLink.select();
+    document.execCommand('copy');
+    
+    // Show feedback
+    const button = event.currentTarget;
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i>';
+    setTimeout(() => {
+        button.innerHTML = originalHTML;
+    }, 2000);
+}
+</script>
+{% endblock %}
+{% endblock %}
