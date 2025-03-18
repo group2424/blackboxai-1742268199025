@@ -1,0 +1,397 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Withdrawals Management{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Withdrawals Management</h1>
+        
+        <!-- Filters -->
+        <div class="flex space-x-4">
+            <select id="statusFilter" 
+                    class="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+            </select>
+            
+            <select id="paymentTypeFilter" 
+                    class="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                <option value="all">All Payment Types</option>
+                <option value="mtn">MTN Mobile Money</option>
+                <option value="airtel">Airtel Money</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Pending Withdrawals -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Pending Withdrawals</h3>
+                <div class="text-yellow-600">
+                    <i class="fas fa-clock text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold" id="pendingCount">0</p>
+            <p class="text-gray-500 mt-2">Awaiting Approval</p>
+        </div>
+
+        <!-- Today's Withdrawals -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Today's Withdrawals</h3>
+                <div class="text-red-600">
+                    <i class="fas fa-calendar-day text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold" id="todayAmount">0 RWF</p>
+            <p class="text-gray-500 mt-2">Total Amount Today</p>
+        </div>
+
+        <!-- Total Withdrawals -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Total Withdrawals</h3>
+                <div class="text-blue-600">
+                    <i class="fas fa-money-bill-wave text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold" id="totalAmount">0 RWF</p>
+            <p class="text-gray-500 mt-2">All Time Total</p>
+        </div>
+    </div>
+
+    <!-- Withdrawals Table -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-50">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            User
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Amount
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Payment Method
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Phone Number
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Date
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200" id="withdrawalsTableBody">
+                    <!-- Withdrawals will be loaded here -->
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                            Loading withdrawals...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="bg-gray-50 px-6 py-3 flex items-center justify-between">
+            <div class="flex-1 flex justify-between sm:hidden">
+                <button onclick="previousPage()" class="btn-pagination">Previous</button>
+                <button onclick="nextPage()" class="btn-pagination">Next</button>
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Showing <span id="startRange">0</span> to <span id="endRange">0</span> of 
+                        <span id="totalWithdrawals">0</span> withdrawals
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" id="pagination">
+                        <!-- Pagination buttons will be added here -->
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Withdrawal Details Modal -->
+<div id="withdrawalModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">Withdrawal Details</h2>
+                <button onclick="closeWithdrawalModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="withdrawalDetails" class="space-y-6">
+                <!-- Withdrawal details will be loaded here -->
+            </div>
+            
+            <div class="mt-6 flex justify-end space-x-4">
+                <button onclick="closeWithdrawalModal()" 
+                        class="px-4 py-2 border rounded-lg hover:bg-gray-50 transition">
+                    Close
+                </button>
+                <button onclick="approveWithdrawal()" 
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                    Approve
+                </button>
+                <button onclick="rejectWithdrawal()" 
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                    Reject
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+let currentPage = 1;
+const withdrawalsPerPage = 10;
+let totalPages = 1;
+let selectedWithdrawalId = null;
+
+// Load withdrawals
+async function loadWithdrawals(page = 1) {
+    const status = document.getElementById('statusFilter').value;
+    const paymentType = document.getElementById('paymentTypeFilter').value;
+    
+    try {
+        const response = await fetch(`/api/admin/withdrawals?page=${page}&limit=${withdrawalsPerPage}&status=${status}&payment_type=${paymentType}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            updateWithdrawalsTable(data.withdrawals);
+            updatePagination(page, Math.ceil(data.total / withdrawalsPerPage));
+            updateStats(data.stats);
+            
+            // Update range info
+            const start = (page - 1) * withdrawalsPerPage + 1;
+            const end = Math.min(start + withdrawalsPerPage - 1, data.total);
+            document.getElementById('startRange').textContent = start;
+            document.getElementById('endRange').textContent = end;
+            document.getElementById('totalWithdrawals').textContent = data.total;
+        }
+    } catch (error) {
+        console.error('Failed to load withdrawals:', error);
+    }
+}
+
+// Update withdrawals table
+function updateWithdrawalsTable(withdrawals) {
+    const tbody = document.getElementById('withdrawalsTableBody');
+    tbody.innerHTML = withdrawals.map(withdrawal => `
+        <tr>
+            <td class="px-6 py-4">
+                <div class="flex items-center">
+                    <div class="text-sm">
+                        <div class="font-medium text-gray-900">${withdrawal.full_name}</div>
+                        <div class="text-gray-500">${withdrawal.user_phone}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="text-sm font-medium text-gray-900">
+                    ${withdrawal.amount.toLocaleString()} RWF
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="text-sm text-gray-900">
+                    ${withdrawal.payment_type === 'mtn' ? 'MTN Mobile Money' : 'Airtel Money'}
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="text-sm text-gray-900">${withdrawal.phone_number}</div>
+            </td>
+            <td class="px-6 py-4">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                    ${getStatusColor(withdrawal.status)}">
+                    ${withdrawal.status}
+                </span>
+            </td>
+            <td class="px-6 py-4">
+                <div class="text-sm text-gray-900">
+                    ${new Date(withdrawal.timestamp).toLocaleString()}
+                </div>
+            </td>
+            <td class="px-6 py-4 text-sm font-medium space-x-2">
+                <button onclick="viewWithdrawal('${withdrawal.id}')" 
+                        class="text-blue-600 hover:text-blue-900">
+                    <i class="fas fa-eye"></i>
+                </button>
+                ${withdrawal.status === 'pending' ? `
+                    <button onclick="approveWithdrawal('${withdrawal.id}')"
+                            class="text-green-600 hover:text-green-900">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button onclick="rejectWithdrawal('${withdrawal.id}')"
+                            class="text-red-600 hover:text-red-900">
+                        <i class="fas fa-times"></i>
+                    </button>
+                ` : ''}
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Update statistics
+function updateStats(stats) {
+    document.getElementById('pendingCount').textContent = stats.pending_count;
+    document.getElementById('todayAmount').textContent = `${stats.today_amount.toLocaleString()} RWF`;
+    document.getElementById('totalAmount').textContent = `${stats.total_amount.toLocaleString()} RWF`;
+}
+
+// Helper function for status colors
+function getStatusColor(status) {
+    switch (status) {
+        case 'pending':
+            return 'bg-yellow-100 text-yellow-800';
+        case 'approved':
+            return 'bg-green-100 text-green-800';
+        case 'rejected':
+            return 'bg-red-100 text-red-800';
+        default:
+            return 'bg-gray-100 text-gray-800';
+    }
+}
+
+// View withdrawal details
+async function viewWithdrawal(withdrawalId) {
+    try {
+        const response = await fetch(`/api/admin/withdrawal/${withdrawalId}`);
+        const withdrawal = await response.json();
+        
+        if (response.ok) {
+            selectedWithdrawalId = withdrawalId;
+            document.getElementById('withdrawalDetails').innerHTML = `
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-gray-700 mb-2">Full Name</label>
+                        <div class="p-2 bg-gray-50 rounded font-medium">
+                            ${withdrawal.full_name}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Amount</label>
+                        <div class="p-2 bg-gray-50 rounded font-medium">
+                            ${withdrawal.amount.toLocaleString()} RWF
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Payment Method</label>
+                        <div class="p-2 bg-gray-50 rounded">
+                            ${withdrawal.payment_type === 'mtn' ? 'MTN Mobile Money' : 'Airtel Money'}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Phone Number</label>
+                        <div class="p-2 bg-gray-50 rounded">${withdrawal.phone_number}</div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Status</label>
+                        <div class="p-2 bg-gray-50 rounded">
+                            <span class="px-2 py-1 rounded-full text-sm font-semibold ${getStatusColor(withdrawal.status)}">
+                                ${withdrawal.status}
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Date</label>
+                        <div class="p-2 bg-gray-50 rounded">
+                            ${new Date(withdrawal.timestamp).toLocaleString()}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('withdrawalModal').classList.remove('hidden');
+        }
+    } catch (error) {
+        console.error('Failed to load withdrawal details:', error);
+    }
+}
+
+// Close withdrawal modal
+function closeWithdrawalModal() {
+    document.getElementById('withdrawalModal').classList.add('hidden');
+    selectedWithdrawalId = null;
+}
+
+// Process withdrawal
+async function processWithdrawal(withdrawalId, action) {
+    try {
+        const response = await fetch(`/api/admin/withdrawal/${withdrawalId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ action })
+        });
+        
+        if (response.ok) {
+            alert(`Withdrawal ${action}d successfully`);
+            closeWithdrawalModal();
+            loadWithdrawals(currentPage);
+        } else {
+            const data = await response.json();
+            alert(data.error || `Failed to ${action} withdrawal`);
+        }
+    } catch (error) {
+        console.error(`Failed to ${action} withdrawal:`, error);
+        alert(`An error occurred while ${action}ing withdrawal`);
+    }
+}
+
+// Approve withdrawal
+function approveWithdrawal(withdrawalId = selectedWithdrawalId) {
+    if (!confirm('Are you sure you want to approve this withdrawal?')) return;
+    processWithdrawal(withdrawalId, 'approve');
+}
+
+// Reject withdrawal
+function rejectWithdrawal(withdrawalId = selectedWithdrawalId) {
+    if (!confirm('Are you sure you want to reject this withdrawal?')) return;
+    processWithdrawal(withdrawalId, 'reject');
+}
+
+// Event listeners for filters
+document.getElementById('statusFilter').addEventListener('change', () => loadWithdrawals(1));
+document.getElementById('paymentTypeFilter').addEventListener('change', () => loadWithdrawals(1));
+
+// Load initial data
+loadWithdrawals();
+</script>
+
+<style>
+.btn-pagination {
+    @apply relative inline-flex items-center px-4 py-2 border text-sm font-medium;
+}
+
+.btn-pagination:not(.disabled) {
+    @apply text-gray-700 bg-white border-gray-300 hover:bg-gray-50;
+}
+
+.btn-pagination.disabled {
+    @apply text-gray-400 bg-gray-100 cursor-not-allowed;
+}
+</style>
+{% endblock %}
+{% endblock %}
