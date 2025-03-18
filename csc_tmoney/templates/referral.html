@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block title %}Referral Program{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+    <!-- Referral Overview -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Referral Link -->
+            <div class="col-span-2">
+                <h2 class="text-xl font-semibold mb-4">Your Referral Link</h2>
+                <div class="flex items-center space-x-2">
+                    <input type="text" value="{{ request.host_url }}register?ref={{ user.referral_code }}" 
+                           class="flex-1 p-3 border rounded-lg bg-gray-50" readonly id="referralLink">
+                    <button onclick="copyReferralLink()" 
+                            class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <p class="text-gray-600 mt-2">
+                    Share this link with others to earn referral bonuses
+                </p>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="bg-gray-50 rounded-lg p-6">
+                <h3 class="text-lg font-semibold mb-4">Your Earnings</h3>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Total Earnings</span>
+                        <span class="font-semibold text-green-600">{{ stats.total_earnings|format_currency }} RWF</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Team Size</span>
+                        <span class="font-semibold">{{ stats.total_referrals }} members</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Active Investors</span>
+                        <span class="font-semibold">{{ stats.active_investors }} members</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Structure -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-semibold mb-6">Your Team Structure</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Level A -->
+            <div class="bg-blue-50 rounded-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold">Level A (10%)</h3>
+                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                        {{ stats.level_a_count }} members
+                    </span>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Active Investors</span>
+                        <span>{{ stats.level_a_active }} members</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Total Invested</span>
+                        <span>{{ stats.level_a_invested|format_currency }} RWF</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Your Earnings</span>
+                        <span class="text-green-600">{{ stats.level_a_earnings|format_currency }} RWF</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Level B -->
+            <div class="bg-purple-50 rounded-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold">Level B (5%)</h3>
+                    <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm">
+                        {{ stats.level_b_count }} members
+                    </span>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Active Investors</span>
+                        <span>{{ stats.level_b_active }} members</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Total Invested</span>
+                        <span>{{ stats.level_b_invested|format_currency }} RWF</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Your Earnings</span>
+                        <span class="text-green-600">{{ stats.level_b_earnings|format_currency }} RWF</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Level C -->
+            <div class="bg-green-50 rounded-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold">Level C (3%)</h3>
+                    <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
+                        {{ stats.level_c_count }} members
+                    </span>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Active Investors</span>
+                        <span>{{ stats.level_c_active }} members</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Total Invested</span>
+                        <span>{{ stats.level_c_invested|format_currency }} RWF</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Your Earnings</span>
+                        <span class="text-green-600">{{ stats.level_c_earnings|format_currency }} RWF</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Members -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-semibold mb-6">Team Members</h2>
+        
+        <!-- Search and Filter -->
+        <div class="flex flex-wrap gap-4 mb-6">
+            <div class="flex-1">
+                <input type="text" id="searchInput" 
+                       class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                       placeholder="Search members...">
+            </div>
+            <select id="levelFilter" 
+                    class="p-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                <option value="all">All Levels</option>
+                <option value="a">Level A</option>
+                <option value="b">Level B</option>
+                <option value="c">Level C</option>
+            </select>
+            <select id="statusFilter" 
+                    class="p-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+        </div>
+
+        <!-- Members Table -->
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-50">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Member
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Level
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Investments
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Your Earnings
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Joined
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200" id="membersTableBody">
+                    {% for member in team_members %}
+                        <tr>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-user text-gray-500"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">{{ member.full_name }}</div>
+                                        <div class="text-sm text-gray-500">{{ member.phone }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                    {% if member.level == 'A' %}bg-blue-100 text-blue-800
+                                    {% elif member.level == 'B' %}bg-purple-100 text-purple-800
+                                    {% else %}bg-green-100 text-green-800{% endif %}">
+                                    Level {{ member.level }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">{{ member.total_invested|format_currency }} RWF</div>
+                                <div class="text-sm text-gray-500">{{ member.active_investments }} active</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-green-600">{{ member.your_earnings|format_currency }} RWF</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                    {% if member.status == 'active' %}bg-green-100 text-green-800
+                                    {% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ member.status }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                {{ member.joined_date|format_date }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-semibold mb-6">How Our Referral Program Works</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Level A -->
+            <div class="text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-users text-blue-600 text-2xl"></i>
+                </div>
+                <h3 class="font-semibold mb-2">Level A - Direct Referrals</h3>
+                <p class="text-gray-600">
+                    Earn 10% commission on investments made by users you directly refer to the platform.
+                </p>
+            </div>
+
+            <!-- Level B -->
+            <div class="text-center">
+                <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-project-diagram text-purple-600 text-2xl"></i>
+                </div>
+                <h3 class="font-semibold mb-2">Level B - Second Tier</h3>
+                <p class="text-gray-600">
+                    Receive 5% commission from investments made by your referrals' referrals.
+                </p>
+            </div>
+
+            <!-- Level C -->
+            <div class="text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-network-wired text-green-600 text-2xl"></i>
+                </div>
+                <h3 class="font-semibold mb-2">Level C - Third Tier</h3>
+                <p class="text-gray-600">
+                    Get 3% commission from investments made by third-level referrals in your network.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+function copyReferralLink() {
+    const referralLink = document.getElementById('referralLink');
+    referralLink.select();
+    document.execCommand('copy');
+    
+    // Show feedback
+    const button = event.currentTarget;
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i>';
+    setTimeout(() => {
+        button.innerHTML = originalHTML;
+    }, 2000);
+}
+
+// Search and filter functionality
+function filterMembers() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const levelFilter = document.getElementById('levelFilter').value;
+    const statusFilter = document.getElementById('statusFilter').value;
+    
+    const rows = document.getElementById('membersTableBody').getElementsByTagName('tr');
+    
+    for (const row of rows) {
+        const name = row.querySelector('.text-gray-900').textContent.toLowerCase();
+        const phone = row.querySelector('.text-gray-500').textContent.toLowerCase();
+        const level = row.querySelector('.rounded-full').textContent.toLowerCase();
+        const status = row.querySelectorAll('.rounded-full')[1].textContent.toLowerCase();
+        
+        const matchesSearch = name.includes(searchTerm) || phone.includes(searchTerm);
+        const matchesLevel = levelFilter === 'all' || level.includes(`level ${levelFilter}`);
+        const matchesStatus = statusFilter === 'all' || status === statusFilter;
+        
+        row.style.display = matchesSearch && matchesLevel && matchesStatus ? '' : 'none';
+    }
+}
+
+document.getElementById('searchInput').addEventListener('input', filterMembers);
+document.getElementById('levelFilter').addEventListener('change', filterMembers);
+document.getElementById('statusFilter').addEventListener('change', filterMembers);
+</script>
+{% endblock %}
+{% endblock %}
