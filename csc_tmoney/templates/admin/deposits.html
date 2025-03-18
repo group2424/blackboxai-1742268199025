@@ -1,0 +1,398 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Deposits Management{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Deposits Management</h1>
+        
+        <!-- Filters -->
+        <div class="flex space-x-4">
+            <select id="statusFilter" 
+                    class="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+            </select>
+            
+            <select id="paymentTypeFilter" 
+                    class="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                <option value="all">All Payment Types</option>
+                <option value="mtn">MTN Mobile Money</option>
+                <option value="airtel">Airtel Money</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Pending Deposits -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Pending Deposits</h3>
+                <div class="text-yellow-600">
+                    <i class="fas fa-clock text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold" id="pendingCount">0</p>
+            <p class="text-gray-500 mt-2">Awaiting Approval</p>
+        </div>
+
+        <!-- Today's Deposits -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Today's Deposits</h3>
+                <div class="text-green-600">
+                    <i class="fas fa-calendar-day text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold" id="todayAmount">0 RWF</p>
+            <p class="text-gray-500 mt-2">Total Amount Today</p>
+        </div>
+
+        <!-- Total Deposits -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Total Deposits</h3>
+                <div class="text-blue-600">
+                    <i class="fas fa-wallet text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold" id="totalAmount">0 RWF</p>
+            <p class="text-gray-500 mt-2">All Time Total</p>
+        </div>
+    </div>
+
+    <!-- Deposits Table -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-50">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            User
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Amount
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Payment Method
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Reference
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Date
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200" id="depositsTableBody">
+                    <!-- Deposits will be loaded here -->
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                            Loading deposits...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="bg-gray-50 px-6 py-3 flex items-center justify-between">
+            <div class="flex-1 flex justify-between sm:hidden">
+                <button onclick="previousPage()" class="btn-pagination">Previous</button>
+                <button onclick="nextPage()" class="btn-pagination">Next</button>
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Showing <span id="startRange">0</span> to <span id="endRange">0</span> of 
+                        <span id="totalDeposits">0</span> deposits
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" id="pagination">
+                        <!-- Pagination buttons will be added here -->
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Deposit Details Modal -->
+<div id="depositModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">Deposit Details</h2>
+                <button onclick="closeDepositModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="depositDetails" class="space-y-6">
+                <!-- Deposit details will be loaded here -->
+            </div>
+            
+            <div class="mt-6 flex justify-end space-x-4">
+                <button onclick="closeDepositModal()" 
+                        class="px-4 py-2 border rounded-lg hover:bg-gray-50 transition">
+                    Close
+                </button>
+                <button onclick="approveDeposit()" 
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                    Approve
+                </button>
+                <button onclick="rejectDeposit()" 
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                    Reject
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+let currentPage = 1;
+const depositsPerPage = 10;
+let totalPages = 1;
+let selectedDepositId = null;
+
+// Load deposits
+async function loadDeposits(page = 1) {
+    const status = document.getElementById('statusFilter').value;
+    const paymentType = document.getElementById('paymentTypeFilter').value;
+    
+    try {
+        const response = await fetch(`/api/admin/deposits?page=${page}&limit=${depositsPerPage}&status=${status}&payment_type=${paymentType}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            updateDepositsTable(data.deposits);
+            updatePagination(page, Math.ceil(data.total / depositsPerPage));
+            updateStats(data.stats);
+            
+            // Update range info
+            const start = (page - 1) * depositsPerPage + 1;
+            const end = Math.min(start + depositsPerPage - 1, data.total);
+            document.getElementById('startRange').textContent = start;
+            document.getElementById('endRange').textContent = end;
+            document.getElementById('totalDeposits').textContent = data.total;
+        }
+    } catch (error) {
+        console.error('Failed to load deposits:', error);
+    }
+}
+
+// Update deposits table
+function updateDepositsTable(deposits) {
+    const tbody = document.getElementById('depositsTableBody');
+    tbody.innerHTML = deposits.map(deposit => `
+        <tr>
+            <td class="px-6 py-4">
+                <div class="flex items-center">
+                    <div class="text-sm">
+                        <div class="font-medium text-gray-900">${deposit.user_name || 'N/A'}</div>
+                        <div class="text-gray-500">${deposit.user_phone}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="text-sm font-medium text-gray-900">
+                    ${deposit.amount.toLocaleString()} RWF
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="text-sm text-gray-900">
+                    ${deposit.payment_type === 'mtn' ? 'MTN Mobile Money' : 'Airtel Money'}
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="text-sm text-gray-900">${deposit.reference}</div>
+            </td>
+            <td class="px-6 py-4">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                    ${getStatusColor(deposit.status)}">
+                    ${deposit.status}
+                </span>
+            </td>
+            <td class="px-6 py-4">
+                <div class="text-sm text-gray-900">
+                    ${new Date(deposit.timestamp).toLocaleString()}
+                </div>
+            </td>
+            <td class="px-6 py-4 text-sm font-medium space-x-2">
+                <button onclick="viewDeposit('${deposit.id}')" 
+                        class="text-blue-600 hover:text-blue-900">
+                    <i class="fas fa-eye"></i>
+                </button>
+                ${deposit.status === 'pending' ? `
+                    <button onclick="approveDeposit('${deposit.id}')"
+                            class="text-green-600 hover:text-green-900">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button onclick="rejectDeposit('${deposit.id}')"
+                            class="text-red-600 hover:text-red-900">
+                        <i class="fas fa-times"></i>
+                    </button>
+                ` : ''}
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Update statistics
+function updateStats(stats) {
+    document.getElementById('pendingCount').textContent = stats.pending_count;
+    document.getElementById('todayAmount').textContent = `${stats.today_amount.toLocaleString()} RWF`;
+    document.getElementById('totalAmount').textContent = `${stats.total_amount.toLocaleString()} RWF`;
+}
+
+// Helper function for status colors
+function getStatusColor(status) {
+    switch (status) {
+        case 'pending':
+            return 'bg-yellow-100 text-yellow-800';
+        case 'approved':
+            return 'bg-green-100 text-green-800';
+        case 'rejected':
+            return 'bg-red-100 text-red-800';
+        default:
+            return 'bg-gray-100 text-gray-800';
+    }
+}
+
+// View deposit details
+async function viewDeposit(depositId) {
+    try {
+        const response = await fetch(`/api/admin/deposit/${depositId}`);
+        const deposit = await response.json();
+        
+        if (response.ok) {
+            selectedDepositId = depositId;
+            document.getElementById('depositDetails').innerHTML = `
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-gray-700 mb-2">User</label>
+                        <div class="p-2 bg-gray-50 rounded">
+                            <div class="font-medium">${deposit.user_name || 'N/A'}</div>
+                            <div class="text-sm text-gray-500">${deposit.user_phone}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Amount</label>
+                        <div class="p-2 bg-gray-50 rounded font-medium">
+                            ${deposit.amount.toLocaleString()} RWF
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Payment Method</label>
+                        <div class="p-2 bg-gray-50 rounded">
+                            ${deposit.payment_type === 'mtn' ? 'MTN Mobile Money' : 'Airtel Money'}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Reference</label>
+                        <div class="p-2 bg-gray-50 rounded">${deposit.reference}</div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Status</label>
+                        <div class="p-2 bg-gray-50 rounded">
+                            <span class="px-2 py-1 rounded-full text-sm font-semibold ${getStatusColor(deposit.status)}">
+                                ${deposit.status}
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Date</label>
+                        <div class="p-2 bg-gray-50 rounded">
+                            ${new Date(deposit.timestamp).toLocaleString()}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('depositModal').classList.remove('hidden');
+        }
+    } catch (error) {
+        console.error('Failed to load deposit details:', error);
+    }
+}
+
+// Close deposit modal
+function closeDepositModal() {
+    document.getElementById('depositModal').classList.add('hidden');
+    selectedDepositId = null;
+}
+
+// Process deposit
+async function processDeposit(depositId, action) {
+    try {
+        const response = await fetch(`/api/admin/deposit/${depositId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ action })
+        });
+        
+        if (response.ok) {
+            alert(`Deposit ${action}d successfully`);
+            closeDepositModal();
+            loadDeposits(currentPage);
+        } else {
+            const data = await response.json();
+            alert(data.error || `Failed to ${action} deposit`);
+        }
+    } catch (error) {
+        console.error(`Failed to ${action} deposit:`, error);
+        alert(`An error occurred while ${action}ing deposit`);
+    }
+}
+
+// Approve deposit
+function approveDeposit(depositId = selectedDepositId) {
+    if (!confirm('Are you sure you want to approve this deposit?')) return;
+    processDeposit(depositId, 'approve');
+}
+
+// Reject deposit
+function rejectDeposit(depositId = selectedDepositId) {
+    if (!confirm('Are you sure you want to reject this deposit?')) return;
+    processDeposit(depositId, 'reject');
+}
+
+// Event listeners for filters
+document.getElementById('statusFilter').addEventListener('change', () => loadDeposits(1));
+document.getElementById('paymentTypeFilter').addEventListener('change', () => loadDeposits(1));
+
+// Load initial data
+loadDeposits();
+</script>
+
+<style>
+.btn-pagination {
+    @apply relative inline-flex items-center px-4 py-2 border text-sm font-medium;
+}
+
+.btn-pagination:not(.disabled) {
+    @apply text-gray-700 bg-white border-gray-300 hover:bg-gray-50;
+}
+
+.btn-pagination.disabled {
+    @apply text-gray-400 bg-gray-100 cursor-not-allowed;
+}
+</style>
+{% endblock %}
+{% endblock %}
