@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}Support Chat{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <!-- Chat Header -->
+        <div class="p-4 border-b bg-gray-50">
+            <div class="flex items-center space-x-4">
+                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-headset text-blue-600"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-semibold">Customer Support</h1>
+                    <p class="text-sm text-gray-500" id="supportStatus">
+                        <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>
+                        Online - Typical response time: 5 minutes
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="h-[calc(100vh-24rem)] flex flex-col">
+            <!-- Messages Container -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4" id="messagesContainer">
+                <!-- Welcome Message -->
+                <div class="flex justify-start">
+                    <div class="bg-gray-100 rounded-lg px-4 py-2 max-w-[70%]">
+                        <div class="text-sm">
+                            Welcome to CSC TMONEY support! How can we help you today?
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">
+                            Support Team
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Messages will be loaded here -->
+                {% for message in messages %}
+                    <div class="flex {% if message.sender == 'user' %}justify-end{% else %}justify-start{% endif %}">
+                        <div class="{% if message.sender == 'user' %}bg-blue-600 text-white{% else %}bg-gray-100{% endif %} 
+                                    rounded-lg px-4 py-2 max-w-[70%]">
+                            <div class="text-sm">{{ message.content }}</div>
+                            <div class="text-xs {% if message.sender == 'user' %}text-blue-100{% else %}text-gray-500{% endif %} mt-1">
+                                {{ message.timestamp|format_datetime }}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Message Input -->
+            <div class="p-4 border-t">
+                <form id="messageForm" class="flex space-x-4">
+                    <div class="flex-1 relative">
+                        <input type="text" id="messageInput" 
+                               class="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                               placeholder="Type your message...">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                            <i class="fas fa-comment"></i>
+                        </span>
+                    </div>
+                    <button type="submit" 
+                            class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition
+                                   flex items-center justify-center">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Common Questions -->
+    <div class="mt-8">
+        <h2 class="text-xl font-semibold mb-4">Common Questions</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button onclick="askCommonQuestion('How do I make a deposit?')"
+                    class="bg-white p-4 rounded-lg shadow hover:shadow-md transition text-left">
+                <div class="flex items-center">
+                    <i class="fas fa-wallet text-blue-600 mr-3"></i>
+                    <div>
+                        <h3 class="font-medium">How do I make a deposit?</h3>
+                        <p class="text-sm text-gray-500">Learn about deposit methods and process</p>
+                    </div>
+                </div>
+            </button>
+
+            <button onclick="askCommonQuestion('How do withdrawals work?')"
+                    class="bg-white p-4 rounded-lg shadow hover:shadow-md transition text-left">
+                <div class="flex items-center">
+                    <i class="fas fa-money-bill-wave text-green-600 mr-3"></i>
+                    <div>
+                        <h3 class="font-medium">How do withdrawals work?</h3>
+                        <p class="text-sm text-gray-500">Understand the withdrawal process</p>
+                    </div>
+                </div>
+            </button>
+
+            <button onclick="askCommonQuestion('What are the investment tiers?')"
+                    class="bg-white p-4 rounded-lg shadow hover:shadow-md transition text-left">
+                <div class="flex items-center">
+                    <i class="fas fa-chart-line text-purple-600 mr-3"></i>
+                    <div>
+                        <h3 class="font-medium">What are the investment tiers?</h3>
+                        <p class="text-sm text-gray-500">Learn about different investment options</p>
+                    </div>
+                </div>
+            </button>
+
+            <button onclick="askCommonQuestion('How does the referral program work?')"
+                    class="bg-white p-4 rounded-lg shadow hover:shadow-md transition text-left">
+                <div class="flex items-center">
+                    <i class="fas fa-users text-yellow-600 mr-3"></i>
+                    <div>
+                        <h3 class="font-medium">How does the referral program work?</h3>
+                        <p class="text-sm text-gray-500">Understand referral benefits and tiers</p>
+                    </div>
+                </div>
+            </button>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+let lastMessageTimestamp = null;
+
+// Initialize chat
+function initChat() {
+    const messagesContainer = document.getElementById('messagesContainer');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    
+    // Start polling for new messages
+    setInterval(checkNewMessages, 5000);
+}
+
+// Send message
+async function sendMessage(content) {
+    try {
+        const response = await fetch('/api/chat/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ content })
+        });
+        
+        if (response.ok) {
+            // Add message to UI
+            addMessageToUI('user', content);
+            
+            // Clear input
+            document.getElementById('messageInput').value = '';
+            
+            // Update support status
+            updateSupportStatus('typing');
+        } else {
+            const data = await response.json();
+            alert(data.error || 'Failed to send message');
+        }
+    } catch (error) {
+        console.error('Failed to send message:', error);
+        alert('An error occurred while sending message');
+    }
+}
+
+// Add message to UI
+function addMessageToUI(sender, content, timestamp = new Date()) {
+    const messagesContainer = document.getElementById('messagesContainer');
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+    
+    messageDiv.innerHTML = `
+        <div class="${sender === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-100'} 
+                    rounded-lg px-4 py-2 max-w-[70%]">
+            <div class="text-sm">${content}</div>
+            <div class="text-xs ${sender === 'user' ? 'text-blue-100' : 'text-gray-500'} mt-1">
+                ${timestamp.toLocaleString()}
+            </div>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    
+    // Update last message timestamp
+    lastMessageTimestamp = timestamp;
+}
+
+// Check for new messages
+async function checkNewMessages() {
+    try {
+        const response = await fetch(`/api/chat/messages?since=${lastMessageTimestamp?.toISOString() || ''}`);
+        const messages = await response.json();
+        
+        if (response.ok && messages.length > 0) {
+            messages.forEach(message => {
+                if (message.sender !== 'user') {
+                    addMessageToUI(message.sender, message.content, new Date(message.timestamp));
+                    updateSupportStatus('online');
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Failed to check new messages:', error);
+    }
+}
+
+// Update support status
+function updateSupportStatus(status) {
+    const statusElement = document.getElementById('supportStatus');
+    
+    switch (status) {
+        case 'online':
+            statusElement.innerHTML = `
+                <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>
+                Online - Typical response time: 5 minutes
+            `;
+            break;
+        case 'typing':
+            statusElement.innerHTML = `
+                <span class="inline-block w-2 h-2 rounded-full bg-blue-500 mr-1"></span>
+                Support is typing...
+            `;
+            break;
+        case 'offline':
+            statusElement.innerHTML = `
+                <span class="inline-block w-2 h-2 rounded-full bg-gray-500 mr-1"></span>
+                Offline - We'll respond as soon as possible
+            `;
+            break;
+    }
+}
+
+// Ask common question
+function askCommonQuestion(question) {
+    document.getElementById('messageInput').value = question;
+    document.getElementById('messageForm').dispatchEvent(new Event('submit'));
+}
+
+// Handle form submission
+document.getElementById('messageForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const content = document.getElementById('messageInput').value.trim();
+    if (content) {
+        sendMessage(content);
+    }
+});
+
+// Initialize chat when page loads
+initChat();
+</script>
+{% endblock %}
+{% endblock %}
