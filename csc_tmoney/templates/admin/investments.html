@@ -1,0 +1,403 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Investments Management{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Investments Management</h1>
+        
+        <!-- Filters -->
+        <div class="flex space-x-4">
+            <select id="statusFilter" 
+                    class="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+                <option value="terminated">Terminated</option>
+            </select>
+            
+            <select id="tierFilter" 
+                    class="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                <option value="all">All Tiers</option>
+                <option value="starter">Starter (2%)</option>
+                <option value="growth">Growth (3%)</option>
+                <option value="premium">Premium (5%)</option>
+                <option value="elite">Elite (6%)</option>
+                <option value="vip">VIP (8%)</option>
+                <option value="platinum">Platinum (10%)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <!-- Active Investments -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Active Investments</h3>
+                <div class="text-green-600">
+                    <i class="fas fa-chart-line text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold" id="activeCount">0</p>
+            <p class="text-gray-500 mt-2">Current Investments</p>
+        </div>
+
+        <!-- Total Invested -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Total Invested</h3>
+                <div class="text-blue-600">
+                    <i class="fas fa-money-bill-wave text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold" id="totalInvested">0 RWF</p>
+            <p class="text-gray-500 mt-2">All Time Total</p>
+        </div>
+
+        <!-- Daily Interest -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Daily Interest</h3>
+                <div class="text-yellow-600">
+                    <i class="fas fa-coins text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold" id="dailyInterest">0 RWF</p>
+            <p class="text-gray-500 mt-2">Total Daily Payout</p>
+        </div>
+
+        <!-- Total Earnings -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-gray-600">Total Earnings</h3>
+                <div class="text-purple-600">
+                    <i class="fas fa-chart-pie text-2xl"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold" id="totalEarnings">0 RWF</p>
+            <p class="text-gray-500 mt-2">All Time Earnings</p>
+        </div>
+    </div>
+
+    <!-- Investments Table -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-50">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Investor
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Amount
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Daily Rate
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Total Earned
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Days Active
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200" id="investmentsTableBody">
+                    <!-- Investments will be loaded here -->
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                            Loading investments...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="bg-gray-50 px-6 py-3 flex items-center justify-between">
+            <div class="flex-1 flex justify-between sm:hidden">
+                <button onclick="previousPage()" class="btn-pagination">Previous</button>
+                <button onclick="nextPage()" class="btn-pagination">Next</button>
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Showing <span id="startRange">0</span> to <span id="endRange">0</span> of 
+                        <span id="totalInvestments">0</span> investments
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" id="pagination">
+                        <!-- Pagination buttons will be added here -->
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Investment Details Modal -->
+<div id="investmentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">Investment Details</h2>
+                <button onclick="closeInvestmentModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="investmentDetails" class="space-y-6">
+                <!-- Investment details will be loaded here -->
+            </div>
+            
+            <div class="mt-6 flex justify-end space-x-4">
+                <button onclick="closeInvestmentModal()" 
+                        class="px-4 py-2 border rounded-lg hover:bg-gray-50 transition">
+                    Close
+                </button>
+                <button onclick="terminateInvestment()" 
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                    Terminate Investment
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+let currentPage = 1;
+const investmentsPerPage = 10;
+let totalPages = 1;
+let selectedInvestmentId = null;
+
+// Load investments
+async function loadInvestments(page = 1) {
+    const status = document.getElementById('statusFilter').value;
+    const tier = document.getElementById('tierFilter').value;
+    
+    try {
+        const response = await fetch(`/api/admin/investments?page=${page}&limit=${investmentsPerPage}&status=${status}&tier=${tier}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            updateInvestmentsTable(data.investments);
+            updatePagination(page, Math.ceil(data.total / investmentsPerPage));
+            updateStats(data.stats);
+            
+            // Update range info
+            const start = (page - 1) * investmentsPerPage + 1;
+            const end = Math.min(start + investmentsPerPage - 1, data.total);
+            document.getElementById('startRange').textContent = start;
+            document.getElementById('endRange').textContent = end;
+            document.getElementById('totalInvestments').textContent = data.total;
+        }
+    } catch (error) {
+        console.error('Failed to load investments:', error);
+    }
+}
+
+// Update investments table
+function updateInvestmentsTable(investments) {
+    const tbody = document.getElementById('investmentsTableBody');
+    tbody.innerHTML = investments.map(investment => `
+        <tr>
+            <td class="px-6 py-4">
+                <div class="flex items-center">
+                    <div class="text-sm">
+                        <div class="font-medium text-gray-900">${investment.user_name}</div>
+                        <div class="text-gray-500">${investment.user_phone}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="text-sm font-medium text-gray-900">
+                    ${investment.amount.toLocaleString()} RWF
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="text-sm text-gray-900">${investment.daily_rate}%</div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="text-sm text-gray-900">
+                    ${investment.total_earned.toLocaleString()} RWF
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="text-sm text-gray-900">${investment.days_active} days</div>
+            </td>
+            <td class="px-6 py-4">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                    ${getStatusColor(investment.status)}">
+                    ${investment.status}
+                </span>
+            </td>
+            <td class="px-6 py-4 text-sm font-medium space-x-2">
+                <button onclick="viewInvestment('${investment.id}')" 
+                        class="text-blue-600 hover:text-blue-900">
+                    <i class="fas fa-eye"></i>
+                </button>
+                ${investment.status === 'active' ? `
+                    <button onclick="terminateInvestment('${investment.id}')"
+                            class="text-red-600 hover:text-red-900">
+                        <i class="fas fa-stop-circle"></i>
+                    </button>
+                ` : ''}
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Update statistics
+function updateStats(stats) {
+    document.getElementById('activeCount').textContent = stats.active_count;
+    document.getElementById('totalInvested').textContent = `${stats.total_invested.toLocaleString()} RWF`;
+    document.getElementById('dailyInterest').textContent = `${stats.daily_interest.toLocaleString()} RWF`;
+    document.getElementById('totalEarnings').textContent = `${stats.total_earnings.toLocaleString()} RWF`;
+}
+
+// Helper function for status colors
+function getStatusColor(status) {
+    switch (status) {
+        case 'active':
+            return 'bg-green-100 text-green-800';
+        case 'completed':
+            return 'bg-blue-100 text-blue-800';
+        case 'terminated':
+            return 'bg-red-100 text-red-800';
+        default:
+            return 'bg-gray-100 text-gray-800';
+    }
+}
+
+// View investment details
+async function viewInvestment(investmentId) {
+    try {
+        const response = await fetch(`/api/admin/investment/${investmentId}`);
+        const investment = await response.json();
+        
+        if (response.ok) {
+            selectedInvestmentId = investmentId;
+            document.getElementById('investmentDetails').innerHTML = `
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-gray-700 mb-2">Investor</label>
+                        <div class="p-2 bg-gray-50 rounded">
+                            <div class="font-medium">${investment.user_name}</div>
+                            <div class="text-sm text-gray-500">${investment.user_phone}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Amount</label>
+                        <div class="p-2 bg-gray-50 rounded font-medium">
+                            ${investment.amount.toLocaleString()} RWF
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Daily Rate</label>
+                        <div class="p-2 bg-gray-50 rounded">${investment.daily_rate}%</div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Total Earned</label>
+                        <div class="p-2 bg-gray-50 rounded">
+                            ${investment.total_earned.toLocaleString()} RWF
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Days Active</label>
+                        <div class="p-2 bg-gray-50 rounded">${investment.days_active} days</div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Status</label>
+                        <div class="p-2 bg-gray-50 rounded">
+                            <span class="px-2 py-1 rounded-full text-sm font-semibold ${getStatusColor(investment.status)}">
+                                ${investment.status}
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Start Date</label>
+                        <div class="p-2 bg-gray-50 rounded">
+                            ${new Date(investment.start_date).toLocaleString()}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Last Payout</label>
+                        <div class="p-2 bg-gray-50 rounded">
+                            ${new Date(investment.last_payout_date).toLocaleString()}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('investmentModal').classList.remove('hidden');
+        }
+    } catch (error) {
+        console.error('Failed to load investment details:', error);
+    }
+}
+
+// Close investment modal
+function closeInvestmentModal() {
+    document.getElementById('investmentModal').classList.add('hidden');
+    selectedInvestmentId = null;
+}
+
+// Terminate investment
+async function terminateInvestment(investmentId = selectedInvestmentId) {
+    if (!confirm('Are you sure you want to terminate this investment? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/admin/investment/${investmentId}/terminate`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            alert('Investment terminated successfully');
+            closeInvestmentModal();
+            loadInvestments(currentPage);
+        } else {
+            const data = await response.json();
+            alert(data.error || 'Failed to terminate investment');
+        }
+    } catch (error) {
+        console.error('Failed to terminate investment:', error);
+        alert('An error occurred while terminating investment');
+    }
+}
+
+// Event listeners for filters
+document.getElementById('statusFilter').addEventListener('change', () => loadInvestments(1));
+document.getElementById('tierFilter').addEventListener('change', () => loadInvestments(1));
+
+// Load initial data
+loadInvestments();
+</script>
+
+<style>
+.btn-pagination {
+    @apply relative inline-flex items-center px-4 py-2 border text-sm font-medium;
+}
+
+.btn-pagination:not(.disabled) {
+    @apply text-gray-700 bg-white border-gray-300 hover:bg-gray-50;
+}
+
+.btn-pagination.disabled {
+    @apply text-gray-400 bg-gray-100 cursor-not-allowed;
+}
+</style>
+{% endblock %}
+{% endblock %}
