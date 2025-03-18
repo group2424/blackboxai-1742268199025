@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}Withdrawal{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8">Withdraw Funds</h1>
+
+    <!-- Balance Overview -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+                <h3 class="text-gray-600 mb-2">Available Balance</h3>
+                <p class="text-3xl font-bold text-blue-600" id="availableBalance">0 RWF</p>
+            </div>
+            <div>
+                <h3 class="text-gray-600 mb-2">Pending Withdrawals</h3>
+                <p class="text-3xl font-bold text-yellow-600" id="pendingWithdrawals">0 RWF</p>
+            </div>
+            <div>
+                <h3 class="text-gray-600 mb-2">Total Withdrawn</h3>
+                <p class="text-3xl font-bold text-green-600" id="totalWithdrawn">0 RWF</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdrawal Form -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-semibold mb-6">Request Withdrawal</h2>
+        
+        <form id="withdrawalForm" class="space-y-6">
+            <!-- Full Name -->
+            <div>
+                <label for="full_name" class="block text-gray-600 mb-2">Full Name</label>
+                <input type="text" id="full_name" name="full_name" 
+                       class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                       placeholder="Enter your full name" required>
+            </div>
+
+            <!-- Payment Method -->
+            <div>
+                <label class="block text-gray-600 mb-2">Payment Method</label>
+                <div class="grid grid-cols-2 gap-4">
+                    <label class="relative">
+                        <input type="radio" name="payment_type" value="mtn" class="sr-only peer" required>
+                        <div class="border rounded-lg p-4 cursor-pointer peer-checked:border-yellow-400 peer-checked:bg-yellow-50">
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle text-yellow-400 mr-2 opacity-0 peer-checked:opacity-100"></i>
+                                MTN Mobile Money
+                            </div>
+                        </div>
+                    </label>
+                    
+                    <label class="relative">
+                        <input type="radio" name="payment_type" value="airtel" class="sr-only peer" required>
+                        <div class="border rounded-lg p-4 cursor-pointer peer-checked:border-red-500 peer-checked:bg-red-50">
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle text-red-500 mr-2 opacity-0 peer-checked:opacity-100"></i>
+                                Airtel Money
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Phone Number -->
+            <div>
+                <label for="phone_number" class="block text-gray-600 mb-2">Phone Number</label>
+                <input type="tel" id="phone_number" name="phone_number" 
+                       class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                       placeholder="Enter mobile money number" required
+                       pattern="07[2389][0-9]{7}">
+                <p class="text-sm text-gray-500 mt-1">Format: 07XXXXXXXX (MTN or Airtel)</p>
+            </div>
+
+            <!-- Amount -->
+            <div>
+                <label for="amount" class="block text-gray-600 mb-2">Amount (RWF)</label>
+                <input type="number" id="amount" name="amount" min="1000" 
+                       class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                       placeholder="Enter amount (minimum 1,000 RWF)" required>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" 
+                    class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition">
+                Request Withdrawal
+            </button>
+        </form>
+    </div>
+
+    <!-- Withdrawal History -->
+    <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-semibold mb-6">Withdrawal History</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-50">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment Method</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200" id="withdrawalHistory">
+                    <!-- Withdrawal history will be loaded here via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="mt-8 bg-blue-50 rounded-lg p-6">
+        <h2 class="text-xl font-semibold mb-4">Withdrawal Information</h2>
+        <ul class="space-y-3 text-gray-700">
+            <li class="flex items-start">
+                <i class="fas fa-info-circle text-blue-600 mt-1 mr-2"></i>
+                <span>Minimum withdrawal amount is 1,000 RWF</span>
+            </li>
+            <li class="flex items-start">
+                <i class="fas fa-clock text-blue-600 mt-1 mr-2"></i>
+                <span>Withdrawals are processed within 24 hours</span>
+            </li>
+            <li class="flex items-start">
+                <i class="fas fa-exclamation-triangle text-blue-600 mt-1 mr-2"></i>
+                <span>Ensure the mobile money number provided is registered in your name</span>
+            </li>
+            <li class="flex items-start">
+                <i class="fas fa-ban text-blue-600 mt-1 mr-2"></i>
+                <span>Pending withdrawals cannot be cancelled after admin approval</span>
+            </li>
+        </ul>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+// Load user's withdrawal-related data
+async function loadWithdrawalData() {
+    try {
+        const response = await fetch('/api/dashboard/summary');
+        const data = await response.json();
+        
+        if (response.ok) {
+            document.getElementById('availableBalance').textContent = `${data.balance.toLocaleString()} RWF`;
+            
+            // Load pending withdrawals
+            const pendingResponse = await fetch('/api/withdrawal/pending');
+            const pendingData = await pendingResponse.json();
+            const pendingTotal = pendingData.reduce((sum, w) => sum + w.amount, 0);
+            document.getElementById('pendingWithdrawals').textContent = `${pendingTotal.toLocaleString()} RWF`;
+            
+            // Load total withdrawn
+            const historyResponse = await fetch('/api/withdrawal/history');
+            const historyData = await historyResponse.json();
+            const totalWithdrawn = historyData
+                .filter(w => w.status === 'approved')
+                .reduce((sum, w) => sum + w.amount, 0);
+            document.getElementById('totalWithdrawn').textContent = `${totalWithdrawn.toLocaleString()} RWF`;
+        }
+    } catch (error) {
+        console.error('Failed to load withdrawal data:', error);
+    }
+}
+
+// Load withdrawal history
+async function loadWithdrawalHistory() {
+    try {
+        const response = await fetch('/api/withdrawal/history');
+        const withdrawals = await response.json();
+        
+        const tbody = document.getElementById('withdrawalHistory');
+        tbody.innerHTML = withdrawals.map(withdrawal => `
+            <tr>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    ${withdrawal.amount.toLocaleString()} RWF
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    ${withdrawal.payment_type === 'mtn' ? 'MTN Mobile Money' : 'Airtel Money'}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        ${withdrawal.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                          withdrawal.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                          'bg-red-100 text-red-800'}">
+                        ${withdrawal.status}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    ${new Date(withdrawal.timestamp).toLocaleString()}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    ${withdrawal.status === 'pending' ? `
+                        <button onclick="cancelWithdrawal('${withdrawal.id}')"
+                                class="text-red-600 hover:text-red-800">
+                            Cancel
+                        </button>
+                    ` : ''}
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Failed to load withdrawal history:', error);
+    }
+}
+
+// Handle withdrawal form submission
+document.getElementById('withdrawalForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+        full_name: document.getElementById('full_name').value,
+        payment_type: document.querySelector('input[name="payment_type"]:checked').value,
+        phone_number: document.getElementById('phone_number').value,
+        amount: parseFloat(document.getElementById('amount').value)
+    };
+    
+    try {
+        const response = await fetch('/api/withdrawal/request', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            alert('Withdrawal request submitted successfully!');
+            e.target.reset();
+            loadWithdrawalData();
+            loadWithdrawalHistory();
+        } else {
+            alert(data.error || 'Failed to submit withdrawal request');
+        }
+    } catch (error) {
+        alert('An error occurred. Please try again.');
+    }
+});
+
+// Cancel withdrawal
+async function cancelWithdrawal(withdrawalId) {
+    if (!confirm('Are you sure you want to cancel this withdrawal request?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/withdrawal/cancel/${withdrawalId}`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            alert('Withdrawal cancelled successfully!');
+            loadWithdrawalData();
+            loadWithdrawalHistory();
+        } else {
+            alert(data.error || 'Failed to cancel withdrawal');
+        }
+    } catch (error) {
+        alert('An error occurred. Please try again.');
+    }
+}
+
+// Load data when page loads
+loadWithdrawalData();
+loadWithdrawalHistory();
+</script>
+{% endblock %}
+{% endblock %}
