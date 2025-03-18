@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+
+{% block title %}Profile Settings{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8 space-y-8">
+    <!-- Profile Overview -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex items-center space-x-4">
+            <div class="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center">
+                <i class="fas fa-user text-gray-500 text-3xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold">{{ user.full_name }}</h1>
+                <p class="text-gray-600">{{ user.phone }}</p>
+                <p class="text-sm text-gray-500">Member since {{ user.joined_date|format_date }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="p-4 rounded-lg {% if category == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Settings Sections -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Personal Information -->
+        <div class="md:col-span-2">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-6">Personal Information</h2>
+                
+                <form method="POST" action="{{ url_for('profile_bp.update_profile') }}" class="space-y-6">
+                    <!-- Full Name -->
+                    <div>
+                        <label for="full_name" class="block text-gray-700 mb-2">Full Name</label>
+                        <input type="text" id="full_name" name="full_name" 
+                               value="{{ user.full_name }}"
+                               class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                               required>
+                    </div>
+
+                    <!-- Phone Number (Read-only) -->
+                    <div>
+                        <label for="phone" class="block text-gray-700 mb-2">Phone Number</label>
+                        <input type="tel" id="phone" value="{{ user.phone }}"
+                               class="w-full p-3 border rounded-lg bg-gray-50" readonly>
+                        <p class="text-sm text-gray-500 mt-1">Phone number cannot be changed</p>
+                    </div>
+
+                    <!-- Email (Optional) -->
+                    <div>
+                        <label for="email" class="block text-gray-700 mb-2">
+                            Email <span class="text-gray-500">(Optional)</span>
+                        </label>
+                        <input type="email" id="email" name="email" 
+                               value="{{ user.email }}"
+                               class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                    </div>
+
+                    <button type="submit" 
+                            class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                        Save Changes
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div>
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-6">Quick Actions</h2>
+                
+                <div class="space-y-4">
+                    <!-- Change Password -->
+                    <button onclick="showChangePasswordModal()" 
+                            class="w-full p-4 bg-gray-50 rounded-lg text-left hover:bg-gray-100 transition">
+                        <div class="flex items-center">
+                            <i class="fas fa-lock text-blue-600 mr-3"></i>
+                            <div>
+                                <h3 class="font-medium">Change Password</h3>
+                                <p class="text-sm text-gray-500">Update your account password</p>
+                            </div>
+                        </div>
+                    </button>
+
+                    <!-- Two-Factor Authentication -->
+                    <button onclick="showTwoFactorModal()" 
+                            class="w-full p-4 bg-gray-50 rounded-lg text-left hover:bg-gray-100 transition">
+                        <div class="flex items-center">
+                            <i class="fas fa-shield-alt text-green-600 mr-3"></i>
+                            <div>
+                                <h3 class="font-medium">Two-Factor Authentication</h3>
+                                <p class="text-sm text-gray-500">
+                                    {% if user.two_factor_enabled %}
+                                        Enabled - Click to manage
+                                    {% else %}
+                                        Disabled - Click to enable
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </button>
+
+                    <!-- Notification Settings -->
+                    <button onclick="showNotificationModal()" 
+                            class="w-full p-4 bg-gray-50 rounded-lg text-left hover:bg-gray-100 transition">
+                        <div class="flex items-center">
+                            <i class="fas fa-bell text-yellow-600 mr-3"></i>
+                            <div>
+                                <h3 class="font-medium">Notification Settings</h3>
+                                <p class="text-sm text-gray-500">Manage your notifications</p>
+                            </div>
+                        </div>
+                    </button>
+
+                    <!-- Account Deletion -->
+                    <button onclick="showDeleteAccountModal()" 
+                            class="w-full p-4 bg-gray-50 rounded-lg text-left hover:bg-gray-100 transition">
+                        <div class="flex items-center">
+                            <i class="fas fa-trash text-red-600 mr-3"></i>
+                            <div>
+                                <h3 class="font-medium text-red-600">Delete Account</h3>
+                                <p class="text-sm text-gray-500">Permanently delete your account</p>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div id="changePasswordModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">Change Password</h2>
+                <button onclick="closeModal('changePasswordModal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="changePasswordForm" method="POST" action="{{ url_for('profile_bp.change_password') }}" class="space-y-6">
+                <!-- Current Password -->
+                <div>
+                    <label for="current_password" class="block text-gray-700 mb-2">Current Password</label>
+                    <div class="relative">
+                        <input type="password" id="current_password" name="current_password" required
+                               class="w-full pl-3 pr-10 py-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                        <button type="button" onclick="togglePassword('current_password')"
+                                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-eye" id="current_passwordToggleIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- New Password -->
+                <div>
+                    <label for="new_password" class="block text-gray-700 mb-2">New Password</label>
+                    <div class="relative">
+                        <input type="password" id="new_password" name="new_password" required
+                               minlength="8"
+                               class="w-full pl-3 pr-10 py-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                        <button type="button" onclick="togglePassword('new_password')"
+                                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-eye" id="new_passwordToggleIcon"></i>
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-1">Minimum 8 characters</p>
+                </div>
+
+                <!-- Confirm New Password -->
+                <div>
+                    <label for="confirm_password" class="block text-gray-700 mb-2">Confirm New Password</label>
+                    <div class="relative">
+                        <input type="password" id="confirm_password" name="confirm_password" required
+                               class="w-full pl-3 pr-10 py-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent">
+                        <button type="button" onclick="togglePassword('confirm_password')"
+                                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-eye" id="confirm_passwordToggleIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeModal('changePasswordModal')"
+                            class="px-4 py-2 border rounded-lg hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        Change Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Two-Factor Authentication Modal -->
+<div id="twoFactorModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">Two-Factor Authentication</h2>
+                <button onclick="closeModal('twoFactorModal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-6">
+                <p class="text-gray-600">
+                    {% if user.two_factor_enabled %}
+                        Two-factor authentication is currently enabled. You will receive a verification code via SMS when logging in.
+                    {% else %}
+                        Enable two-factor authentication to add an extra layer of security to your account.
+                    {% endif %}
+                </p>
+
+                <form method="POST" action="{{ url_for('profile_bp.toggle_two_factor') }}">
+                    <button type="submit"
+                            class="w-full px-4 py-2 {% if user.two_factor_enabled %}bg-red-600{% else %}bg-green-600{% endif %} text-white rounded-lg hover:{% if user.two_factor_enabled %}bg-red-700{% else %}bg-green-700{% endif %} transition">
+                        {% if user.two_factor_enabled %}
+                            Disable Two-Factor Authentication
+                        {% else %}
+                            Enable Two-Factor Authentication
+                        {% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Settings Modal -->
+<div id="notificationModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">Notification Settings</h2>
+                <button onclick="closeModal('notificationModal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form method="POST" action="{{ url_for('profile_bp.update_notifications') }}" class="space-y-6">
+                <div class="space-y-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="investment_notifications" 
+                               {% if user.notifications.investment %}checked{% endif %}
+                               class="rounded text-blue-600">
+                        <span class="ml-2">Investment Updates</span>
+                    </label>
+                    
+                    <label class="flex items-center">
+                        <input type="checkbox" name="deposit_notifications"
+                               {% if user.notifications.deposit %}checked{% endif %}
+                               class="rounded text-blue-600">
+                        <span class="ml-2">Deposit Notifications</span>
+                    </label>
+                    
+                    <label class="flex items-center">
+                        <input type="checkbox" name="withdrawal_notifications"
+                               {% if user.notifications.withdrawal %}checked{% endif %}
+                               class="rounded text-blue-600">
+                        <span class="ml-2">Withdrawal Notifications</span>
+                    </label>
+                    
+                    <label class="flex items-center">
+                        <input type="checkbox" name="referral_notifications"
+                               {% if user.notifications.referral %}checked{% endif %}
+                               class="rounded text-blue-600">
+                        <span class="ml-2">Referral Notifications</span>
+                    </label>
+                </div>
+
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeModal('notificationModal')"
+                            class="px-4 py-2 border rounded-lg hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        Save Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div id="deleteAccountModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-red-600">Delete Account</h2>
+                <button onclick="closeModal('deleteAccountModal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-6">
+                <div class="bg-red-50 text-red-700 p-4 rounded-lg">
+                    <p class="font-semibold">Warning: This action cannot be undone</p>
+                    <ul class="list-disc list-inside mt-2 text-sm">
+                        <li>All your data will be permanently deleted</li>
+                        <li>Active investments will be terminated</li>
+                        <li>Your referral network will be affected</li>
+                    </ul>
+                </div>
+
+                <form method="POST" action="{{ url_for('profile_bp.delete_account') }}" class="space-y-6">
+                    <!-- Password Confirmation -->
+                    <div>
+                        <label for="delete_password" class="block text-gray-700 mb-2">Enter Password to Confirm</label>
+                        <div class="relative">
+                            <input type="password" id="delete_password" name="password" required
+                                   class="w-full pl-3 pr-10 py-3 border rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent">
+                            <button type="button" onclick="togglePassword('delete_password')"
+                                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-eye" id="delete_passwordToggleIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Confirmation Checkbox -->
+                    <label class="flex items-center">
+                        <input type="checkbox" name="confirm_delete" required class="rounded text-red-600">
+                        <span class="ml-2 text-gray-700">
+                            I understand that this action is permanent and cannot be undone
+                        </span>
+                    </label>
+
+                    <div class="flex justify-end space-x-4">
+                        <button type="button" onclick="closeModal('deleteAccountModal')"
+                                class="px-4 py-2 border rounded-lg hover:bg-gray-50 transition">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                            Delete Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(inputId + 'ToggleIcon');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+function showChangePasswordModal() {
+    document.getElementById('changePasswordModal').classList.remove('hidden');
+}
+
+function showTwoFactorModal() {
+    document.getElementById('twoFactorModal').classList.remove('hidden');
+}
+
+function showNotificationModal() {
+    document.getElementById('notificationModal').classList.remove('hidden');
+}
+
+function showDeleteAccountModal() {
+    document.getElementById('deleteAccountModal').classList.remove('hidden');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+}
+
+// Form validation
+document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+    const currentPassword = document.getElementById('current_password').value;
+    const newPassword = document.getElementById('new_password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        e.preventDefault();
+        alert('Please fill in all password fields');
+        return;
+    }
+    
+    if (newPassword.length < 8) {
+        e.preventDefault();
+        alert('New password must be at least 8 characters long');
+        return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        e.preventDefault();
+        alert('New passwords do not match');
+        return;
+    }
+});
+
+// Close modals when clicking outside
+window.addEventListener('click', function(e) {
+    const modals = ['changePasswordModal', 'twoFactorModal', 'notificationModal', 'deleteAccountModal'];
+    modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (e.target === modal) {
+            closeModal(modalId);
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}
